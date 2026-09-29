@@ -571,7 +571,7 @@ a { color: inherit; }
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end;
   gap: 28px; margin-bottom: clamp(36px, 5vw, 56px);
 }
-.bento__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.bento__grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-flow: dense; gap: 14px; }
 .tile {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
   padding: 22px 24px 20px; min-height: 150px;
@@ -579,14 +579,36 @@ a { color: inherit; }
 }
 /* L'icône occupe le haut de la tuile : sans elle, le chiffre calé en bas
    laissait une large plage blanche au-dessus. */
-.tile__icon { color: var(--accent); }
+.tile__icon { color: var(--tile-c, var(--accent)); }
 .tile__icon svg { width: 22px; height: 22px; }
 .tile--dark .tile__icon { color: var(--accent-light); }
+/* Apparition en cascade : les tuiles montent l'une après l'autre quand la
+   section entre dans le champ. */
+.bento .tile { opacity: 0; transform: translateY(20px); transition: opacity .55s ease-out, transform .55s cubic-bezier(.22,.61,.36,1); }
+.bento.is-in .tile { opacity: 1; transform: none; }
+.bento.is-in .tile:nth-child(1)  { transition-delay: .02s }
+.bento.is-in .tile:nth-child(2)  { transition-delay: .07s }
+.bento.is-in .tile:nth-child(3)  { transition-delay: .12s }
+.bento.is-in .tile:nth-child(4)  { transition-delay: .17s }
+.bento.is-in .tile:nth-child(5)  { transition-delay: .22s }
+.bento.is-in .tile:nth-child(6)  { transition-delay: .27s }
+.bento.is-in .tile:nth-child(7)  { transition-delay: .32s }
+.bento.is-in .tile:nth-child(8)  { transition-delay: .37s }
+.bento.is-in .tile:nth-child(9)  { transition-delay: .42s }
+.bento.is-in .tile:nth-child(10) { transition-delay: .47s }
+.bento.is-in .tile:nth-child(n+11) { transition-delay: .52s }
+@media (prefers-reduced-motion: reduce) {
+  .bento .tile { opacity: 1; transform: none; transition: none; }
+}
+
 .tile--wide { grid-column: span 2; }
 .tile--tall { grid-row: span 2; }
 .tile--full { grid-column: span 4; min-height: 0; }
 .tile--full img { min-height: 0; height: auto; aspect-ratio: 4 / 1.05; }
 .tile--photo { padding: 0; overflow: hidden; min-height: 240px; }
+/* Respirations photographiques réservées aux écrans étroits : au-dessus,
+   la grille en quatre colonnes tient déjà toute seule. */
+.tile--respiration { display: none; }
 /* La photo haute se cale sur les deux rangées de tuiles. Sans position
    absolue, elle prend la hauteur naturelle de l'image (390 px pour un
    1600x1066) et étire les tuiles voisines, ce qui rouvre du vide. */
@@ -614,10 +636,26 @@ a { color: inherit; }
   .tile--full { grid-column: span 2; }
   .tile--full img { aspect-ratio: 3 / 1.4; }
 }
+@media (max-width: 1020px) {
+  /* Les photos passent en bandeau pleine largeur : elles coupent la
+     succession de tuiles claires au lieu de s'y fondre. */
+  .tile--respiration { display: block; grid-column: span 2; min-height: 0; }
+  .tile--respiration img { width: 100%; height: auto; min-height: 0; aspect-ratio: 3 / 2; }
+}
 @media (max-width: 580px) {
-  .bento__grid { grid-template-columns: 1fr; }
-  .tile--wide, .tile--full { grid-column: span 1; }
-  .tile--full img { aspect-ratio: 3 / 2; }
+  /* Deux colonnes maintenues : en colonne unique, les huit tuiles claires
+     formaient un long mur blanc au défilement. */
+  .bento__grid { gap: 10px; }
+  .tile { padding: 16px 16px 14px; min-height: 124px; }
+  .tile__icon svg { width: 19px; height: 19px; }
+  .tile__key { font-size: 27px; margin: 10px 0 5px; }
+  .tile__label { font-size: 10.5px; letter-spacing: .12em; }
+  .tile--wide, .tile--full, .tile--respiration { grid-column: span 2; }
+  .tile--photo { min-height: 0; }
+  .tile--photo img { min-height: 0; height: auto; aspect-ratio: 3 / 2; }
+  .tile--tall.tile--photo { position: relative; }
+  .tile--tall.tile--photo img { position: static; aspect-ratio: 3 / 2; }
+  .tile--full img { aspect-ratio: 3 / 1.6; }
 }
 
 /* =====================================================================
