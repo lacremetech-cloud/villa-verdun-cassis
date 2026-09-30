@@ -171,9 +171,10 @@
   var lastFocused = null;
   var formLoaded = false;
 
-  /* Tunnel Systeme.io dédié au bien. */
-  var FORM_SCRIPT_URL =
-    'https://lecambredaze.systeme.io/public/remote/page/44251769b40171ff4121fae3e8fb34b27213ff1b.js';
+  /* Tunnel Systeme.io dédié au bien. À renseigner avec le script du tunnel
+     de la Villa Verdun (celui de la Villa Jean Jaurès redirige vers sa propre
+     brochure). Tant qu'il est vide, la modale propose directement WhatsApp. */
+  var FORM_SCRIPT_URL = '';
 
   /* Le script n'est injecté qu'au premier clic sur un appel à l'action :
      cela évite qu'iOS Safari ouvre sa barre d'autocomplétion dès l'arrivée
@@ -195,8 +196,11 @@
       if (formContainer.querySelector('iframe')) return;
       var p = document.createElement('p');
       p.style.cssText = 'font-size:14.5px;line-height:1.7;color:#5E7386;margin:0 0 16px';
-      p.textContent = 'Le formulaire ne s\'affiche pas ? Écrivez-nous directement, ' +
-                      'nous vous transmettons le dossier sous 24 heures ouvrées.';
+      p.textContent = FORM_SCRIPT_URL
+        ? 'Le formulaire ne s\'affiche pas ? Écrivez-nous directement, ' +
+          'nous vous transmettons le dossier sous 24 heures ouvrées.'
+        : 'Écrivez-nous sur WhatsApp : nous vous transmettons le dossier ' +
+          'sous 24 heures ouvrées.';
       var a = document.createElement('a');
       a.className = 'btn btn--primary btn--block';
       a.href = 'https://wa.me/33668680407';
@@ -205,6 +209,8 @@
       formContainer.appendChild(p);
       formContainer.appendChild(a);
     }
+
+    if (!FORM_SCRIPT_URL) { fallback(); return; }
 
     /* Systeme.io insère son iframe juste après le script lui-même
        (document.currentScript) : il doit donc être ajouté dans ce
