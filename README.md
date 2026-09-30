@@ -4,9 +4,10 @@ Site de présentation et brochure premium du bien, sur le modèle exact de la
 [Villa Jean Jaurès](https://github.com/lacremetech-cloud/Villa-jeanajures-Cassis)
 (elle-même calquée sur [chaletfontromeu](https://github.com/lacremetech-cloud/chaletfontromeu)).
 
-Villa contemporaine, avenue de Verdun à Cassis. 145 m² entièrement restructurés,
-plus de 600 m² de terrain paysagé, 4 chambres, 4 salles de bains, 3 WC, studio
-indépendant de 20 m², piscine, vue mer et Cap Canaille. **1 590 000 € FAI**
+Villa contemporaine, 17 avenue de Verdun à Cassis. 135 m² habitables entièrement
+restructurés, plus de 600 m² de terrain paysagé, 4 chambres, 4 salles d'eau, 3 WC,
+studio indépendant de 16 m², piscine, vue mer et Cap Canaille, DPE B / GES A.
+**1 590 000 € FAI**
 (le prix figure dans la brochure, pas sur la landing, comme pour Jean Jaurès).
 
 ## Structure
@@ -75,7 +76,7 @@ l'auteur, soit des images propres au bien.
 |---|---|
 | **Tunnel Systeme.io de la Villa Verdun** | `main.js`, constante `FORM_SCRIPT_URL` (vide pour l'instant) |
 | Pixel Meta | `index.html`, commentaire `TODO Meta Pixel` |
-| DPE et taxe foncière | `brochure/index.html`, pages 14 et 15 (« communiqué sur demande ») |
+| Taxe foncière | `brochure/index.html`, page 15 (« sur demande ») |
 | Mentions légales, confidentialité | pied de page, liens `#` |
 
 ## Contact WhatsApp
@@ -108,19 +109,41 @@ dans le conteneur `#brochureFormContainer` (il s'auto-positionne après
 lui-même), iframe masqué jusqu'à ce que Systeme.io renvoie sa hauteur, lien
 WhatsApp de secours au bout de dix secondes.
 
+## Diagnostics (DDT n° 259883 du 26/06/2026)
+
+Source de tous les chiffres techniques du site : dossier de diagnostic technique
+de General Services Contrôles, établi pour SAS JCAN IMMO, 17 avenue de Verdun.
+
+**DPE.** Classe **B**, 74 kWh/m²/an en énergie primaire ; GES classe **A**,
+2 kgCO₂/m²/an. Dépenses annuelles estimées entre 970 € et 1 360 € (prix moyens
+2021 à 2023). N° ADEME 2613E1732500I, valable jusqu'au 25/06/2036. Affiché dans
+les prestations de la landing et en page 13 de la brochure (gabarit DPE de la
+Villa Jean Jaurès).
+
+**Surfaces.** L'annonce initiale n'était pas conforme à l'attestation de surface ;
+**ce sont les chiffres du DDT qui sont retenus** :
+
+| | Annonce | Site (DDT) |
+|---|---|---|
+| Surface habitable | 145 m² | **135 m²** (135,16) |
+| Pièce de vie et cuisine | 50 m² | **52 m²** (51,96) |
+| Suite parentale | près de 20 m² | **20 m², salle d'eau comprise** (15,16 + 5,04) |
+| Chambre de l'étage | 15 m² | **12 m²** (12,33) |
+| Studio | 20 m² | **16 m²** (13,87 + salle d'eau/WC 2,20) |
+| Salles de bains | 4 | **4 salles d'eau** (3 dans la maison, 1 au studio) |
+| Garage, cave, balcon | — | 19,7 m², 13,3 m², 20 m² (hors surface habitable) |
+
+Pièce modulable (« bureau ») : 10,58 m². Chambre du rez-de-chaussée : 10,93 m².
+Le terrain n'est pas mesuré par le DDT : « plus de 600 m² » reste le chiffre
+de l'annonce.
+
+Amiante, termites et installation électrique : aucune anomalie relevée.
+
+**ERP.** Le DDT renvoie à un document joint. L'état des risques réf. 3739891 du
+26/06/2026, transmis par erreur pour la Villa Jean Jaurès et retiré de sa brochure,
+porte sur le 17 avenue de Verdun, parcelle CL 58 : c'est celui de ce bien.
+
 ## Points à trancher
-
-**DPE.** Aucune valeur transmise. La page DPE de la brochure Jean Jaurès a été
-remplacée par une page « La vue », et la ligne DPE indique « communiqué sur
-demande ». L'affichage de la classe énergie est obligatoire dans les annonces :
-à compléter dès réception du diagnostic.
-
-**Chambres et salles de bains.** L'annonce indique 4 chambres et 4 salles de
-bains. Le texte les répartit ainsi, sans rien ajouter : pièce modulable
-(« 4ème chambre » possible), chambre de plain-pied avec salle de bains et WC
-privatifs, suite parentale de près de 20 m² et chambre de 15 m² chacune avec
-salle de bains privative. La quatrième salle de bains n'est pas localisée
-(studio ?) : le site n'en dit pas plus.
 
 **Distances.** Contrairement au boulevard Jean Jaurès, l'avenue de Verdun n'est
 pas présentée comme « tout à pied » : le site parle de port, marché et plages
