@@ -169,77 +169,77 @@
   var closeEls = document.querySelectorAll('.js-close-modal');
   var scrollY = 0;
   var lastFocused = null;
-  var formLoaded = false;
+  /* ---------- Formulaire Prodigio ----------
+     L'iframe est écrit directement dans la modale, en loading="lazy" : il
+     n'est chargé qu'à la première ouverture. Il annonce sa hauteur par
+     postMessage, que l'on applique ici pour qu'il n'ait ni barre de
+     défilement interne ni blanc en dessous. */
+  var PRODIGIO_ORIGINE = 'https://go.prodigio.fr';
+  var cadre = document.getElementById('prodigio-form');
+  var attente = formContainer ? formContainer.querySelector('.modal__spinner') : null;
 
-  /* Tunnel Systeme.io dédié au bien. À renseigner avec le script du tunnel
-     de la Villa Verdun (celui de la Villa Jean Jaurès redirige vers sa propre
-     brochure). Tant qu'il est vide, la modale propose directement WhatsApp. */
-  var FORM_SCRIPT_URL = '';
+  function retirerAttente() {
+    if (attente && attente.parentNode) { attente.parentNode.removeChild(attente); attente = null; }
+  }
 
-  /* Le script n'est injecté qu'au premier clic sur un appel à l'action :
-     cela évite qu'iOS Safari ouvre sa barre d'autocomplétion dès l'arrivée
-     sur la page, et épargne un iframe tiers aux visiteurs qui ne demandent
-     pas la brochure. */
+  /* Repli : si le formulaire n'annonce jamais sa hauteur (réseau coupé,
+     bloqueur de contenu, bien pas encore publié dans le CRM), on propose
+     WhatsApp plutôt qu'une boîte vide. Réversible : si la hauteur finit
+     par arriver, on rend la main à l'iframe. */
+  var repli = null;
+  function replier() {
+    if (repli || !formContainer || !cadre) return;
+    retirerAttente();
+    cadre.style.display = 'none';
+    var p = document.createElement('p');
+    p.style.cssText = 'font-size:14.5px;line-height:1.7;color:#5E7386;margin:0 0 16px';
+    p.textContent = "Le formulaire ne s'affiche pas ? Écrivez-nous directement, " +
+                    'nous vous transmettons le dossier sous 24 heures ouvrées.';
+    var a = document.createElement('a');
+    a.className = 'btn btn--primary btn--block';
+    a.href = 'https://wa.me/33668680407';
+    a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.textContent = 'Écrire sur WhatsApp';
+    formContainer.appendChild(p);
+    formContainer.appendChild(a);
+    repli = [p, a];
+  }
+  function deplier() {
+    if (!repli) return;
+    for (var i = 0; i < repli.length; i++) {
+      if (repli[i].parentNode) repli[i].parentNode.removeChild(repli[i]);
+    }
+    repli = null;
+    cadre.style.display = 'block';
+  }
+
+  if (cadre) {
+    /* On n'écoute pas 'load' : une page d'erreur du service se charge elle
+       aussi avec succès. Seul le message de hauteur prouve que le
+       formulaire est bien là, d'où l'iframe masqué jusque-là. */
+    cadre.addEventListener('error', replier);
+
+    window.addEventListener('message', function (e) {
+      /* Double vérification : la fenêtre émettrice doit être cet iframe,
+         et son origine celle du service. */
+      if (e.origin !== PRODIGIO_ORIGINE) return;
+      if (e.source !== cadre.contentWindow) return;
+      if (!e.data || e.data.type !== 'prodigio:buyer-form:height') return;
+      if (typeof e.data.height !== 'number' || e.data.height <= 0) return;
+      deplier();
+      retirerAttente();
+      cadre.classList.add('is-ready');
+      cadre.style.height = e.data.height + 'px';
+      cadre.style.minHeight = '0';
+    });
+  }
+
+  /* Au premier clic, six secondes pour que le formulaire se signale. Le
+     repli étant réversible, ce délai peut rester court sans risque. */
+  var minuteurForm = null;
   function loadForm() {
-    if (formLoaded || !formContainer) return;
-    formLoaded = true;
-
-    var spinner = formContainer.querySelector('.modal__spinner');
-    function done() {
-      if (spinner && spinner.parentNode) spinner.parentNode.removeChild(spinner);
-    }
-
-    /* Si le formulaire ne s'affiche pas (script bloqué, réseau coupé,
-       extension), on propose WhatsApp plutôt que de laisser une boîte vide. */
-    function fallback() {
-      done();
-      if (formContainer.querySelector('iframe')) return;
-      var p = document.createElement('p');
-      p.style.cssText = 'font-size:14.5px;line-height:1.7;color:#5E7386;margin:0 0 16px';
-      p.textContent = FORM_SCRIPT_URL
-        ? 'Le formulaire ne s\'affiche pas ? Écrivez-nous directement, ' +
-          'nous vous transmettons le dossier sous 24 heures ouvrées.'
-        : 'Écrivez-nous sur WhatsApp : nous vous transmettons le dossier ' +
-          'sous 24 heures ouvrées.';
-      var a = document.createElement('a');
-      a.className = 'btn btn--primary btn--block';
-      a.href = 'https://wa.me/33668680407';
-      a.target = '_blank'; a.rel = 'noopener noreferrer';
-      a.textContent = 'Écrire sur WhatsApp';
-      formContainer.appendChild(p);
-      formContainer.appendChild(a);
-    }
-
-    if (!FORM_SCRIPT_URL) { fallback(); return; }
-
-    /* Systeme.io insère son iframe juste après le script lui-même
-       (document.currentScript) : il doit donc être ajouté dans ce
-       conteneur, et surtout pas dans le <head>. */
-    var script = document.createElement('script');
-    script.id = 'form-script-tag-25381637';
-    script.src = FORM_SCRIPT_URL;
-    script.async = true;
-    script.onerror = fallback;
-    formContainer.appendChild(script);
-
-    /* L'iframe reste masqué tant que Systeme.io n'a pas renvoyé sa hauteur
-       par postMessage. On retire l'attente à ce moment précis. */
-    if ('MutationObserver' in window) {
-      var obs = new MutationObserver(function () {
-        var f = formContainer.querySelector('iframe');
-        if (f && f.style.visibility !== 'hidden' && f.offsetHeight > 40) {
-          done();
-          obs.disconnect();
-        }
-      });
-      obs.observe(formContainer, {
-        childList: true, subtree: true,
-        attributes: true, attributeFilter: ['style', 'height', 'width']
-      });
-      setTimeout(function () { obs.disconnect(); fallback(); }, 10000);
-    } else {
-      setTimeout(fallback, 6000);
-    }
+    if (minuteurForm !== null || !cadre) return;
+    minuteurForm = setTimeout(replier, 6000);
   }
 
   /* Verrouillage du scroll compatible iOS : on fige le body en position
