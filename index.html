@@ -708,11 +708,15 @@
       </p>
     </div>
     <div class="modal__form" id="brochureFormContainer">
-      <!-- Formulaire Prodigio. loading="lazy" dans une modale masquée :
-           l'iframe n'est chargé qu'à la première ouverture, donc aucun appel
-           réseau pour les visiteurs qui ne demandent pas la brochure.
-           min-height tient la place avant que la hauteur réelle n'arrive
-           par postMessage (voir main.js). -->
+      <!-- Formulaire Prodigio : la saisie alimente directement le CRM.
+           L'URL ci-dessous est le seul endroit à changer si le bien est
+           renommé dans le CRM. Le slug doit exister côté Prodigio, sinon la
+           page répond 404 et la modale bascule sur le repli WhatsApp.
+           loading="lazy" dans une modale masquée : l'iframe n'est chargé
+           qu'à la première ouverture, donc aucun appel réseau pour les
+           visiteurs qui ne demandent pas la brochure. Il reste invisible
+           jusqu'à ce qu'il annonce sa hauteur (voir main.js) : un visiteur
+           ne voit jamais la page d'erreur du service. -->
       <iframe id="prodigio-form"
               src="https://go.prodigio.fr/bien/villa-jean-jaures/interet"
               title="Demander la brochure" loading="lazy"

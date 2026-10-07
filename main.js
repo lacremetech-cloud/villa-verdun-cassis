@@ -217,14 +217,15 @@
     if (attente && attente.parentNode) { attente.parentNode.removeChild(attente); attente = null; }
   }
 
-  /* Si le formulaire ne s'affiche pas (réseau coupé, bloqueur, service
-     indisponible), on propose WhatsApp plutôt qu'une boîte vide. */
-  var replides = false;
+  /* Repli : si le formulaire n'annonce jamais sa hauteur (réseau coupé,
+     bloqueur de contenu, bien pas encore publié dans le CRM), on propose
+     WhatsApp plutôt qu'une boîte vide. Réversible : si la hauteur finit
+     par arriver, on rend la main à l'iframe. */
+  var repli = null;
   function replier() {
-    if (replides || !formContainer) return;
-    replides = true;
+    if (repli || !formContainer || !cadre) return;
     retirerAttente();
-    if (cadre) cadre.style.display = 'none';
+    cadre.style.display = 'none';
     var p = document.createElement('p');
     p.style.cssText = 'font-size:14.5px;line-height:1.7;color:#5E7386;margin:0 0 16px';
     p.textContent = "Le formulaire ne s'affiche pas ? Écrivez-nous directement, " +
@@ -236,10 +237,21 @@
     a.textContent = 'Écrire sur WhatsApp';
     formContainer.appendChild(p);
     formContainer.appendChild(a);
+    repli = [p, a];
+  }
+  function deplier() {
+    if (!repli) return;
+    for (var i = 0; i < repli.length; i++) {
+      if (repli[i].parentNode) repli[i].parentNode.removeChild(repli[i]);
+    }
+    repli = null;
+    cadre.style.display = 'block';
   }
 
   if (cadre) {
-    cadre.addEventListener('load', retirerAttente);
+    /* On n'écoute pas 'load' : une page d'erreur du service se charge elle
+       aussi avec succès. Seul le message de hauteur prouve que le
+       formulaire est bien là, d'où l'iframe masqué jusque-là. */
     cadre.addEventListener('error', replier);
 
     window.addEventListener('message', function (e) {
@@ -249,19 +261,20 @@
       if (e.source !== cadre.contentWindow) return;
       if (!e.data || e.data.type !== 'prodigio:buyer-form:height') return;
       if (typeof e.data.height !== 'number' || e.data.height <= 0) return;
+      deplier();
       retirerAttente();
+      cadre.classList.add('is-ready');
       cadre.style.height = e.data.height + 'px';
       cadre.style.minHeight = '0';
     });
   }
 
-  /* Au premier clic, on laisse dix secondes au formulaire pour apparaître. */
+  /* Au premier clic, six secondes pour que le formulaire se signale. Le
+     repli étant réversible, ce délai peut rester court sans risque. */
   var minuteurForm = null;
   function surveillerForm() {
     if (minuteurForm !== null || !cadre) return;
-    minuteurForm = setTimeout(function () {
-      if (!cadre.style.height) replier();
-    }, 10000);
+    minuteurForm = setTimeout(replier, 6000);
   }
 
   /* Verrouillage du scroll compatible iOS : on fige le body en position

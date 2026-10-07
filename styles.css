@@ -852,12 +852,16 @@ a { color: inherit; }
   .modal__head { padding: 34px 24px 0; }
   .modal__form { padding: 22px 24px 28px; }
 }
-/* Le formulaire est servi par Systeme.io dans un iframe : il apporte ses
+/* Le formulaire est servi par Prodigio dans un iframe : il apporte ses
    propres styles. On se contente de l'empêcher de déborder de la modale,
-   le script lui fixant une largeur en pixels à la réception de sa taille. */
+   sa hauteur étant posée par le script à la réception de son message. */
 #brochureFormContainer iframe { max-width: 100% !important; }
+/* Tant que l'iframe n'a pas annoncé sa hauteur, on le masque sans le sortir
+   du flux : visibility lui conserve sa boîte, donc un vrai viewport, donc la
+   capacité de se mesurer. L'attente est posée par-dessus. */
+#prodigio-form:not(.is-ready) { visibility: hidden; }
 
-.modal__spinner { display: flex; align-items: center; justify-content: center; height: 180px; color: var(--soft-fg); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+.modal__spinner { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--soft-fg); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
 
 /* =====================================================================
    STICKY CTA
