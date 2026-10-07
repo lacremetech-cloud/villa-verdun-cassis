@@ -708,9 +708,15 @@
       </p>
     </div>
     <div class="modal__form" id="brochureFormContainer">
-      <!-- Le script Systeme.io est injecté ici au premier clic (voir main.js).
-           Il insère son iframe juste après lui-même, d'où l'injection dans ce
-           conteneur et non dans le <head>. -->
+      <!-- Formulaire Prodigio. loading="lazy" dans une modale masquée :
+           l'iframe n'est chargé qu'à la première ouverture, donc aucun appel
+           réseau pour les visiteurs qui ne demandent pas la brochure.
+           min-height tient la place avant que la hauteur réelle n'arrive
+           par postMessage (voir main.js). -->
+      <iframe id="prodigio-form"
+              src="https://go.prodigio.fr/bien/villa-jean-jaures/interet"
+              title="Demander la brochure" loading="lazy"
+              style="width:100%;border:0;min-height:520px;display:block"></iframe>
       <div class="modal__spinner">Chargement du formulaire…</div>
     </div>
   </div>

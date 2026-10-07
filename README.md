@@ -78,37 +78,30 @@ intérieure de la brochure, en bouton sur sa dernière page, et au pied du site.
 
 ## Formulaire de capture
 
-Le bouton « Recevoir la brochure » ouvre une modale dans laquelle est injecté le
-script du tunnel Systeme.io, comme sur le site du chalet :
+Le bouton « Recevoir la brochure » ouvre une modale contenant l'iframe du
+formulaire Prodigio :
 
 ```
-https://lecambredaze.systeme.io/public/remote/page/44251769b40171ff4121fae3e8fb34b27213ff1b.js
+https://go.prodigio.fr/bien/villa-jean-jaures/interet
 ```
 
 Trois points à connaître :
 
-1. **Le script s'auto-positionne.** Il insère son iframe juste après lui-même
-   (`document.currentScript`). Il doit donc être ajouté **dans le conteneur**
-   `#brochureFormContainer`, jamais dans le `<head>`.
-2. **Il n'est injecté qu'au premier clic** sur un appel à l'action. C'est le
-   choix retenu sur le chalet : cela évite qu'iOS Safari ouvre sa barre
-   d'autocomplétion dès l'arrivée sur la page, et épargne un iframe tiers aux
-   visiteurs qui ne demandent pas la brochure.
-3. **L'iframe reste masqué** tant que Systeme.io n'a pas renvoyé sa hauteur par
-   `postMessage`. L'attente est donc retirée à ce moment précis, et non au
-   chargement du script. Si rien n'arrive au bout de dix secondes, un lien
-   WhatsApp de secours s'affiche plutôt qu'une boîte vide.
+1. **Il n'est chargé qu'à la première ouverture.** L'iframe porte
+   `loading="lazy"` et la modale est masquée au repos : aucun appel réseau
+   pour les visiteurs qui ne demandent pas la brochure. Vérifié.
+2. **Il annonce sa hauteur** par `postMessage`
+   (`prodigio:buyer-form:height`), appliquée dans `main.js` pour qu'il n'ait
+   ni barre de défilement interne ni blanc en dessous. Le `min-height` de
+   520 px tient la place en attendant, puis est relâché.
+3. **Le message est doublement vérifié** : la fenêtre émettrice doit être cet
+   iframe *et* son origine `https://go.prodigio.fr`. Le contrôle d'origine
+   s'ajoute à l'extrait fourni : sans lui, n'importe quelle fenêtre de la page
+   pourrait redimensionner le cadre.
 
-Après validation, le visiteur arrive sur la page de remerciement du tunnel.
-**C'est là qu'il faut pointer vers la brochure** :
-
-```
-https://villa-jeanjaures-cassis.vercel.app/brochure/
-```
-
-Tant que cette redirection n'est pas configurée, le visiteur laisse ses
-coordonnées sans recevoir le dossier. L'accès direct provisoire qui existait
-auparavant a été retiré : le formulaire le remplace.
+Si le formulaire ne s'affiche pas au bout de dix secondes — réseau coupé,
+bloqueur, service indisponible — un lien WhatsApp de secours remplace la
+boîte vide. Vérifié aussi.
 
 ## Points à trancher
 
