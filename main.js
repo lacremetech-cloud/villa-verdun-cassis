@@ -187,8 +187,13 @@
      WhatsApp plutôt qu'une boîte vide. Réversible : si la hauteur finit
      par arriver, on rend la main à l'iframe. */
   var repli = null;
+  /* Passe a true des que le formulaire a annonce sa hauteur. Le repli ne
+     doit JAMAIS effacer un formulaire qui fonctionne : sans ce garde-fou,
+     le minuteur remplacait le formulaire au bout de six secondes, en plein
+     milieu de la saisie. */
+  var pret = false;
   function replier() {
-    if (repli || !formContainer || !cadre) return;
+    if (pret || repli || !formContainer || !cadre) return;
     retirerAttente();
     cadre.style.display = 'none';
     var p = document.createElement('p');
@@ -226,6 +231,8 @@
       if (e.source !== cadre.contentWindow) return;
       if (!e.data || e.data.type !== 'prodigio:buyer-form:height') return;
       if (typeof e.data.height !== 'number' || e.data.height <= 0) return;
+      pret = true;
+      if (minuteurForm !== null) { clearTimeout(minuteurForm); minuteurForm = null; }
       deplier();
       retirerAttente();
       cadre.classList.add('is-ready');
