@@ -298,12 +298,18 @@
   var formCharge = false;
   function chargerLeFormulaire() {
     if (formDemande || !cadre) return;
-    var base = cadre.getAttribute('data-src');
-    if (!base) return;
     formDemande = true;
     /* On NOTE l'arrivee de la page, on ne declenche aucun compte a rebours :
        le visiteur n'attend rien encore, la modale n'est pas ouverte. */
     cadre.addEventListener('load', function () { formCharge = true; }, { once: true });
+
+    /* Le script en ligne de index.html a normalement deja pose l'adresse : il
+       vit dans le meme fichier que le cadre, il ne peut pas etre d'une autre
+       version. Ce qui suit n'est qu'un filet, pour le cas ou ce fichier serait
+       plus ancien que celui-ci. */
+    if (cadre.getAttribute('src')) return;
+    var base = cadre.getAttribute('data-src');
+    if (!base) return;
     cadre.setAttribute('src', base + reporterAttribution());
   }
 
@@ -314,11 +320,9 @@
       boutons[b].addEventListener('focus', chargerLeFormulaire, { once: true });
       boutons[b].addEventListener('touchstart', chargerLeFormulaire, { once: true, passive: true });
     }
-    if (typeof window.requestIdleCallback === 'function') {
-      window.requestIdleCallback(chargerLeFormulaire, { timeout: 3000 });
-    } else {
-      setTimeout(chargerLeFormulaire, 2000);
-    }
+    /* Immediat : le cadre est deja en train de charger, on se contente de
+       suivre son arrivee. */
+    chargerLeFormulaire();
   }
 
   /* L'esquisse et le mot d'attente partent ENSEMBLE, au moment ou le

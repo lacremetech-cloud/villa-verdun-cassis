@@ -760,6 +760,43 @@
               data-src="https://go.prodigio.fr/bien/villa-verdun/interet"
               title="Demander la brochure"
               style="width:100%;border:0;min-height:520px;display:block"></iframe>
+      <!-- L adresse du cadre est posee ICI, par un script en ligne, et non par
+           main.js. La raison tient a une panne vue en production : le HTML et
+           le JavaScript sont deux fichiers, mis en cache separement par le
+           navigateur. Un visiteur avec l ANCIEN main.js (qui lit `src`) et le
+           NOUVEAU HTML (qui porte `data-src`) n obtenait jamais de formulaire,
+           et basculait sur le repli WhatsApp a chaque ouverture.
+
+           Un script en ligne vit dans le MEME fichier que le cadre : les deux
+           ne peuvent pas etre d une version differente. Il s execute pendant
+           l analyse du document, donc la requete part immediatement, avant
+           meme main.js — et l attribution publicitaire est posee du premier
+           coup, sans second chargement. -->
+      <script>
+        (function () {
+          var c = document.getElementById('prodigio-form');
+          if (!c || c.getAttribute('src')) return;
+          var base = c.getAttribute('data-src');
+          if (!base) return;
+          var q = '';
+          try {
+            var entrants = new URLSearchParams(window.location.search);
+            var retenus = [];
+            var cles = ['fbclid', 'gclid', 'utm_source', 'utm_medium',
+                        'utm_campaign', 'utm_term', 'utm_content'];
+            for (var i = 0; i < cles.length; i++) {
+              var v = entrants.get(cles[i]);
+              if (!v) continue;
+              v = v.trim();
+              if (!v) continue;
+              /* Meme plafond que le serveur, qui tronque a 300 caracteres. */
+              retenus.push(encodeURIComponent(cles[i]) + '=' + encodeURIComponent(v.slice(0, 300)));
+            }
+            if (retenus.length) q = '?' + retenus.join('&');
+          } catch (e) { /* Navigateur sans URLSearchParams : on charge sans. */ }
+          c.setAttribute('src', base + q);
+        })();
+      </script>
       <!-- Une esquisse du formulaire plutot qu un mot dans le vide : on voit
            tout de suite la forme de ce qui arrive, et l attente parait courte. -->
       <div class="modal__esquisse" aria-hidden="true">
