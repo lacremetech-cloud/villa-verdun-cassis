@@ -295,12 +295,15 @@
 
      Idempotent : la premiere pose gagne, les suivantes ne font rien. */
   var formDemande = false;
+  var formCharge = false;
   function chargerLeFormulaire() {
     if (formDemande || !cadre) return;
     var base = cadre.getAttribute('data-src');
     if (!base) return;
     formDemande = true;
-    loadForm();
+    /* On NOTE l'arrivee de la page, on ne declenche aucun compte a rebours :
+       le visiteur n'attend rien encore, la modale n'est pas ouverte. */
+    cadre.addEventListener('load', function () { formCharge = true; }, { once: true });
     cadre.setAttribute('src', base + reporterAttribution());
   }
 
@@ -424,7 +427,7 @@
      qu'elle a répondu autre chose que le formulaire (page d'erreur, bien
      inconnu), et là le repli est la bonne réponse. */
   var DELAI_TOTAL = 15000;
-  var DELAI_APRES_CHARGEMENT = 5000;
+  var DELAI_APRES_CHARGEMENT = 8000;
 
   var minuteurForm = null;
   function armer(delai) {
@@ -432,15 +435,22 @@
     minuteurForm = setTimeout(replier, delai);
   }
   function loadForm() {
-    if (minuteurForm !== null || !cadre) return;
-    armer(DELAI_TOTAL);
-    /* La page est là, mais elle n'a encore rien dit : on resserre. On ne se
-       fie jamais à ce seul événement, une page d'erreur se charge elle
-       aussi avec succès. */
-    cadre.addEventListener('load', function () {
-      if (pret || minuteurForm === null) return;
-      armer(DELAI_APRES_CHARGEMENT);
-    });
+    if (minuteurForm !== null || !cadre || pret) return;
+    /* Le compte a rebours part d'ICI, a l'ouverture de la modale : c'est le
+       moment ou le visiteur commence a attendre. Le faire partir du
+       chargement de la page, depuis que le formulaire est demande d'avance,
+       posait le repli AVANT meme qu'on ouvre la modale — c'est ce qui a ete
+       observe en production.
+
+       Si la page du formulaire est deja arrivee, il ne reste qu'a se
+       signaler : le delai court suffit. Sinon on laisse le delai complet. */
+    armer(formCharge ? DELAI_APRES_CHARGEMENT : DELAI_TOTAL);
+    if (!formCharge) {
+      cadre.addEventListener('load', function () {
+        if (pret || minuteurForm === null) return;
+        armer(DELAI_APRES_CHARGEMENT);
+      }, { once: true });
+    }
   }
 
   /* Verrouillage du scroll compatible iOS : on fige le body en position
@@ -462,6 +472,7 @@
     if (!modal) return;
     lastFocused = document.activeElement;
     chargerLeFormulaire();
+    loadForm();
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
     lockScroll();
