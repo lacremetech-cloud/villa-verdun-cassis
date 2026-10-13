@@ -844,6 +844,21 @@ a { color: inherit; }
    capacité de se mesurer. L'attente est posée par-dessus. */
 #prodigio-form:not(.is-ready) { visibility: hidden; }
 
+/* Cadre REPLIE : le repli WhatsApp occupe le flux a sa place, mais le cadre
+   garde sa largeur et sa hauteur reelles, hors du flux. C'est ce qui lui
+   permet de continuer a annoncer sa hauteur — et donc de reprendre la main si
+   le formulaire finit par arriver. Mis en display:none, il ne mesurait plus
+   rien et le repli etait definitif, alors qu'il se veut reversible. */
+#prodigio-form.is-replie {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
 /* ---------------------------------------------------------------------
    Esquisse du formulaire
 

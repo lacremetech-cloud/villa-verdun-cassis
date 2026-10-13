@@ -348,7 +348,8 @@
   function replier() {
     if (pret || repli || !formContainer || !cadre) return;
     retirerAttente();
-    cadre.style.display = 'none';
+    /* Hors du flux, mais toujours mesure : voir `.is-replie` dans styles.css. */
+    cadre.classList.add('is-replie');
     var p = document.createElement('p');
     p.style.cssText = 'font-size:14.5px;line-height:1.7;color:#5E7386;margin:0 0 16px';
     p.textContent = "Le formulaire ne s'affiche pas ? Écrivez-nous directement, " +
@@ -368,7 +369,7 @@
       if (repli[i].parentNode) repli[i].parentNode.removeChild(repli[i]);
     }
     repli = null;
-    cadre.style.display = 'block';
+    cadre.classList.remove('is-replie');
   }
 
   if (cadre) {
@@ -476,6 +477,14 @@
     if (!modal) return;
     lastFocused = document.activeElement;
     chargerLeFormulaire();
+    /* Le repli est pose : le service etait injoignable la derniere fois. Il
+       est peut-etre revenu depuis — on relance le cadre plutot que de laisser
+       le visiteur devant un repli definitif. Le repli reste affiche tant que
+       le formulaire ne s'est pas signale. */
+    if (repli && cadre) {
+      var adresse = cadre.getAttribute('src') || cadre.getAttribute('data-src');
+      if (adresse) { cadre.removeAttribute('src'); cadre.setAttribute('src', adresse); }
+    }
     loadForm();
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
