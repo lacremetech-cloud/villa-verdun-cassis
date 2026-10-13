@@ -309,12 +309,36 @@
     });
   }
 
-  /* Au premier clic, six secondes pour que le formulaire se signale. Le
-     repli étant réversible, ce délai peut rester court sans risque. */
+  /* Combien de temps on laisse au formulaire avant de proposer WhatsApp.
+     Six secondes à plat ne suffisaient pas : la page du formulaire est
+     rendue à la demande, et un démarrage à froid du service, sur un réseau
+     mobile, dépasse ce délai sans que rien ne soit cassé — le visiteur
+     voyait alors le repli s'afficher à la place d'un formulaire qui
+     arrivait très bien.
+
+     Deux échéances donc, plutôt qu'une : quinze secondes au total pour que
+     la page arrive ET se signale ; et, une fois la page arrivée, cinq
+     secondes pour qu'elle annonce sa hauteur — passé ce délai, c'est
+     qu'elle a répondu autre chose que le formulaire (page d'erreur, bien
+     inconnu), et là le repli est la bonne réponse. */
+  var DELAI_TOTAL = 15000;
+  var DELAI_APRES_CHARGEMENT = 5000;
+
   var minuteurForm = null;
+  function armer(delai) {
+    if (minuteurForm !== null) clearTimeout(minuteurForm);
+    minuteurForm = setTimeout(replier, delai);
+  }
   function loadForm() {
     if (minuteurForm !== null || !cadre) return;
-    minuteurForm = setTimeout(replier, 6000);
+    armer(DELAI_TOTAL);
+    /* La page est là, mais elle n'a encore rien dit : on resserre. On ne se
+       fie jamais à ce seul événement, une page d'erreur se charge elle
+       aussi avec succès. */
+    cadre.addEventListener('load', function () {
+      if (pret || minuteurForm === null) return;
+      armer(DELAI_APRES_CHARGEMENT);
+    });
   }
 
   /* Verrouillage du scroll compatible iOS : on fige le body en position
