@@ -273,7 +273,31 @@
          et son origine celle du service. */
       if (e.origin !== PRODIGIO_ORIGINE) return;
       if (e.source !== cadre.contentWindow) return;
-      if (!e.data || e.data.type !== 'prodigio:buyer-form:height') return;
+      if (!e.data) return;
+
+      /* Demande enregistree : le formulaire nous passe l'adresse du dossier,
+         et c'est NOUS qui nous y rendons. L'ecran « Votre demande est
+         enregistree » faisait cliquer pour rien — la page de remise porte
+         deja la meme phrase.
+
+         Garde-fou : on ne se deplace que vers une adresse de NOTRE propre
+         origine. Meme si le CRM pointait un jour ailleurs, ce cadre ne peut
+         pas emmener le visiteur sur un site tiers. */
+      if (e.data.type === 'prodigio:buyer-form:brochure') {
+        if (typeof e.data.url !== 'string' || !e.data.url) return;
+        var destination;
+        try {
+          destination = new URL(e.data.url, window.location.href);
+        } catch (err) {
+          return;
+        }
+        if (destination.origin !== window.location.origin) return;
+        unlockScroll();
+        window.location.href = destination.href;
+        return;
+      }
+
+      if (e.data.type !== 'prodigio:buyer-form:height') return;
       if (typeof e.data.height !== 'number' || e.data.height <= 0) return;
       pret = true;
       if (minuteurForm !== null) { clearTimeout(minuteurForm); minuteurForm = null; }
