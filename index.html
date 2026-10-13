@@ -849,6 +849,36 @@
   </button>
 </div>
 
+<!-- Comptage des visites. Cette page est STATIQUE : aucun serveur ne tourne
+     derriere elle, elle ne peut donc rien rapporter d elle-meme. Elle previent
+     donc le serveur Prodigio, qui relaie la visite a Meta cote serveur. Aucun
+     script de Meta ne s execute ici, aucun cookie tiers n est depose.
+
+     `sendBeacon` plutot qu une requete ordinaire : le navigateur la fait
+     partir meme si l onglet se ferme dans la seconde, et un corps `text/plain`
+     evite la requete de verification prealable. Tout est enveloppe : une
+     mesure qui echoue ne doit jamais gener la page. -->
+<script>
+  (function () {
+    try {
+      var corps = JSON.stringify({
+        slug: 'villa-verdun',
+        id: (window.crypto && crypto.randomUUID)
+              ? crypto.randomUUID()
+              : 'v-' + Date.now() + '-' + Math.random().toString(36).slice(2),
+        url: location.href.slice(0, 500),
+        fbclid: new URLSearchParams(location.search).get('fbclid'),
+        at: Date.now()
+      });
+      var cible = 'https://go.prodigio.fr/api/mesure/visite';
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(cible, new Blob([corps], { type: 'text/plain' }));
+      } else {
+        fetch(cible, { method: 'POST', mode: 'no-cors', keepalive: true, body: corps });
+      }
+    } catch (e) {}
+  })();
+</script>
 <script src="main.js" defer></script>
 </body>
 </html>
