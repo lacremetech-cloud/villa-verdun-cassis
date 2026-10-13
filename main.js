@@ -307,8 +307,15 @@
      formulaire qui ne republie pas sa hauteur a l'ouverture laisse l'hote dans
      le noir. Entre montrer un formulaire charge sans connaitre sa taille et ne
      rien montrer du tout, le choix est vite fait : le repli WhatsApp reste
-     dessous, et la hauteur affinera l'affichage si elle arrive ensuite. */
-  var DELAI_AFFICHAGE_FORCE = 2500;
+     dessous, et la hauteur affinera l'affichage si elle arrive ensuite.
+
+     Ce delai valait 2500 ms : deux secondes et demie de squelette APRES que la
+     page du formulaire etait deja arrivee et peinte dans le cadre. On attendait
+     un message de hauteur pour afficher quelque chose qui etait pret. Le cadre
+     s'affiche donc maintenant des que sa page a fini de charger ; la hauteur,
+     si elle arrive ensuite, ne fait qu'ajuster la boite de quelques dizaines de
+     pixels. */
+  var DELAI_AFFICHAGE_FORCE = 0;
   function chargerLeFormulaire() {
     if (formDemande || !cadre) return;
     formDemande = true;
@@ -367,11 +374,64 @@
      le minuteur remplacait le formulaire au bout de six secondes, en plein
      milieu de la saisie. */
   var pret = false;
+  /* Passe a true des que le cadre est reellement sous les yeux du visiteur,
+     avec ou sans message de hauteur. C'est CE drapeau qui protege le
+     formulaire, et non `pret`.
+
+     La panne vue en production tenait a cette confusion : le minuteur ne
+     regardait que `pret`, c'est-a-dire l'arrivee du message de hauteur. Or ce
+     message est publie par le JavaScript du formulaire, apres hydratation.
+     S'il n'arrive pas — bloqueur de contenu, extension de confidentialite, un
+     fragment JS qui ne passe pas chez CE visiteur-la — le formulaire reste
+     parfaitement utilisable : il est rendu cote serveur, affiche, cliquable.
+     Le minuteur l'effacait quand meme, huit secondes apres l'ouverture, pour
+     mettre WhatsApp a sa place. C'est exactement la capture d'ecran recue. */
+  var affiche = false;
   function replier() {
+    if (pret || repli || !formContainer || !cadre) return;
+    /* La page du cadre n'est jamais arrivee : le cadre est vide, c'est le seul
+       cas ou WhatsApp doit tout de suite prendre toute la place. */
+    if (!formCharge) { remplacerParWhatsapp(); return; }
+    /* La page est la, mais elle ne s'est pas encore signalee. On ne lui prend
+       PAS sa place : une ligne discrete en dessous, le temps que son
+       JavaScript finisse d'arriver. Mesure a l'appui, sur un reseau 3G bride,
+       ce signal met trente et une secondes — l'ancien delai de huit secondes
+       effacait donc un formulaire qui marchait tres bien. C'est exactement la
+       capture d'ecran recue. */
+    afficherSansHauteur();
+    var ligne = document.createElement('p');
+    ligne.style.cssText = 'font-size:13px;line-height:1.6;color:#8095A6;margin:14px 0 0;text-align:center';
+    ligne.appendChild(document.createTextNode('Un souci avec le formulaire ? '));
+    var lien = document.createElement('a');
+    lien.href = 'https://wa.me/33668680407';
+    lien.target = '_blank'; lien.rel = 'noopener noreferrer';
+    lien.style.cssText = 'color:inherit;text-decoration:underline';
+    lien.textContent = 'Écrivez-nous sur WhatsApp';
+    ligne.appendChild(lien);
+    ligne.appendChild(document.createTextNode('.'));
+    formContainer.appendChild(ligne);
+    repli = [ligne];
+  }
+
+  /* Derniere echeance. Le formulaire s'envoie en JavaScript : sans son signal,
+     il est affiche mais muet, et le visiteur le remplirait pour rien. Passe ce
+     delai — tres au-dela des trente et une secondes mesurees sur reseau bride —
+     on arrete de l'attendre et WhatsApp prend toute la place. Reversible
+     jusqu'au bout : si le signal arrive ensuite, le formulaire reprend sa
+     place. */
+  function constaterLeSilence() {
+    minuteurMort = null;
+    if (pret || !cadre) return;
+    deplier();
+    remplacerParWhatsapp();
+  }
+
+  function remplacerParWhatsapp() {
     if (pret || repli || !formContainer || !cadre) return;
     retirerAttente();
     /* Hors du flux, mais toujours mesure : voir `.is-replie` dans styles.css. */
     cadre.classList.add('is-replie');
+    affiche = false;
     var p = document.createElement('p');
     p.style.cssText = 'font-size:14.5px;line-height:1.7;color:#5E7386;margin:0 0 16px';
     p.textContent = "Le formulaire ne s'affiche pas ? Écrivez-nous directement, " +
@@ -388,7 +448,10 @@
   /* Affiche le cadre sans attendre sa hauteur. Il garde sa hauteur minimale
      (520 px) ; la modale defile si le formulaire est plus grand. */
   function afficherSansHauteur() {
-    if (!cadre || pret) return;
+    if (!cadre || affiche) return;
+    affiche = true;
+    /* Retire un repli deja pose : le cadre revenu a la vie reprend sa place.
+       Sans effet quand il n'y en a pas — c'est le cas normal. */
     deplier();
     retirerAttente();
     cadre.classList.add('is-ready');
@@ -441,7 +504,9 @@
       if (e.data.type !== 'prodigio:buyer-form:height') return;
       if (typeof e.data.height !== 'number' || e.data.height <= 0) return;
       pret = true;
+      affiche = true;
       if (minuteurForm !== null) { clearTimeout(minuteurForm); minuteurForm = null; }
+      if (minuteurMort !== null) { clearTimeout(minuteurMort); minuteurMort = null; }
       deplier();
       retirerAttente();
       cadre.classList.add('is-ready');
@@ -457,18 +522,31 @@
      voyait alors le repli s'afficher à la place d'un formulaire qui
      arrivait très bien.
 
-     Deux échéances donc, plutôt qu'une : quinze secondes au total pour que
-     la page arrive ET se signale ; et, une fois la page arrivée, cinq
-     secondes pour qu'elle annonce sa hauteur — passé ce délai, c'est
-     qu'elle a répondu autre chose que le formulaire (page d'erreur, bien
-     inconnu), et là le repli est la bonne réponse. */
+     Trois échéances, et ce qu'elles déclenchent diffère :
+
+     — quinze secondes pour que la page du formulaire ARRIVE. Passé ce délai
+       sans rien, le cadre est vide : WhatsApp prend toute la place.
+     — douze secondes, une fois la page arrivée, pour qu'elle SE SIGNALE. Le
+       formulaire reste affiché ; on ajoute seulement une ligne discrète.
+     — quarante-cinq secondes, et là seulement on considère qu'il ne se
+       signalera jamais.
+
+     Ces chiffres ne sont pas arbitraires. Le signal de hauteur part du
+     JavaScript du formulaire, après hydratation. Mesuré sur la vraie page,
+     avec bridage réseau et processeur : 3,5 s en 4G, et **31,1 s en 3G
+     lente**. L'ancien délai de huit secondes effaçait donc un formulaire
+     parfaitement sain sur toute connexion un peu lente — c'est la panne
+     signalée, et elle n'avait rien d'aléatoire. */
   var DELAI_TOTAL = 15000;
-  var DELAI_APRES_CHARGEMENT = 8000;
+  var DELAI_APRES_CHARGEMENT = 12000;
+  var DELAI_SILENCE = 45000;
 
   var minuteurForm = null;
+  var minuteurMort = null;
   function armer(delai) {
     if (minuteurForm !== null) clearTimeout(minuteurForm);
     minuteurForm = setTimeout(replier, delai);
+    if (minuteurMort === null) minuteurMort = setTimeout(constaterLeSilence, DELAI_SILENCE);
   }
   function loadForm() {
     if (minuteurForm !== null || !cadre || pret) return;
@@ -512,7 +590,7 @@
        est peut-etre revenu depuis — on relance le cadre plutot que de laisser
        le visiteur devant un repli definitif. Le repli reste affiche tant que
        le formulaire ne s'est pas signale. */
-    if (repli && cadre) {
+    if (repli && cadre && !formCharge) {
       var adresse = cadre.getAttribute('src') || cadre.getAttribute('data-src');
       if (adresse) { cadre.removeAttribute('src'); cadre.setAttribute('src', adresse); }
     }
