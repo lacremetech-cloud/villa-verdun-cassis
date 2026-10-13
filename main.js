@@ -11,7 +11,7 @@
 
      Deux sources possibles, dans cet ordre de préférence :
 
-     1. HERO_VIDEO_MP4 — un fichier servi depuis le dépôt. C'est la
+     1. HERO_VIDEO — des fichiers servis depuis le dépôt. C'est la
         meilleure option : pas de tiers, pas de logo, contrôle total du
         cadrage et de la boucle. À privilégier dès que des images
         propres au bien seront disponibles.
@@ -23,8 +23,21 @@
      Dans les deux cas la photo reste dessous : elle s'affiche tout de
      suite et prend le relais si la vidéo ne démarre pas.
      ===================================================================== */
-  var HERO_VIDEO_MP4   = '';                /* ex. 'assets/video/hero.mp4' */
-  var HERO_VIDEO_ID    = 'UE3kntZkW8o';     /* Cassis vue du ciel — Polychronis Film */
+  /* Teaser tourné pour le bien. Deux définitions : la légère est servie aux
+     petits écrans, où elle pèse moins du tiers de la large. Les deux sont
+     muettes (l'autoplay l'exige) et encodées en faststart, pour que la lecture
+     démarre sans attendre la fin du téléchargement. */
+  /* Fond du hero, sur grand écran seulement. Le fichier est amputé de ses sept
+     premières secondes : le carton-titre « Villa VERDUN » s'y affichait
+     derrière le titre de la page et rendait les deux illisibles. Couper plutôt
+     que se positionner à la lecture, pour que la boucle reparte au bon endroit
+     à chaque tour. Sur petit écran, le fond reste la photo et la vidéo est
+     présentée telle quelle, en lecteur, sous le texte. */
+  var HERO_VIDEO = [
+    ['assets/video/fond-verdun-720.webm', 'video/webm'],
+    ['assets/video/fond-verdun-720.mp4',  'video/mp4']
+  ];
+  var HERO_VIDEO_ID    = 'UE3kntZkW8o';     /* repli : Cassis vue du ciel — Polychronis Film */
   var HERO_VIDEO_START = 40;                /* secondes */
 
   var heroVideo = document.getElementById('heroVideo');
@@ -34,15 +47,26 @@
        on garde la photo, qui est plus légère et tout aussi juste. */
     if (!heroVideo) return true;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
-    if (window.matchMedia('(max-width: 760px)').matches) return true;
     var c = navigator.connection;
     if (c && (c.saveData || /^(slow-)?2g$/.test(c.effectiveType || ''))) return true;
+    /* En dessous de 1200 px, la carte de capture passe sous le texte et la
+       visite vidéo s'intercale entre les deux : le fond ferait double emploi,
+       deux lectures simultanées pour un seul teaser. La photo reste. */
+    if (window.matchMedia('(max-width: 1200px)').matches) return true;
     return false;
   }
 
-  function mountMp4() {
+  function mountFichier() {
     var v = document.createElement('video');
-    v.src = HERO_VIDEO_MP4;
+    /* Le WebM d'abord : plus léger, lu par tout ce qui n'est pas un vieux
+       Safari, qui prend alors le MP4. Le navigateur choisit la première
+       source qu'il sait lire, on ne décide rien à sa place. */
+    for (var i = 0; i < HERO_VIDEO.length; i++) {
+      var s = document.createElement('source');
+      s.src = HERO_VIDEO[i][0];
+      s.type = HERO_VIDEO[i][1];
+      v.appendChild(s);
+    }
     v.muted = true; v.defaultMuted = true;
     v.loop = true; v.autoplay = true; v.playsInline = true;
     v.setAttribute('playsinline', '');
@@ -93,7 +117,7 @@
   }
 
   if (!prefersStillImage()) {
-    if (HERO_VIDEO_MP4) mountMp4();
+    if (HERO_VIDEO) mountFichier();
     else if (HERO_VIDEO_ID) mountYouTube();
   }
 
@@ -169,6 +193,48 @@
   var closeEls = document.querySelectorAll('.js-close-modal');
   var scrollY = 0;
   var lastFocused = null;
+
+  /* ---------- Visite vidéo dans le flux (écrans étroits) ----------
+     iOS refuse parfois la lecture automatique au premier chargement : on la
+     relance au premier contact. Hors écran, on met en pause, par égard pour
+     la batterie. Les deux commandes sont les nôtres, celles du système
+     restant neutralisées par pointer-events: none. */
+  var visite = document.querySelector('.hero__shot video');
+  if (visite) {
+    var lancer = function () { var p = visite.play(); if (p && p.catch) p.catch(function () {}); };
+    lancer();
+    document.addEventListener('touchstart', lancer, { once: true, passive: true });
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entrees) {
+        for (var i = 0; i < entrees.length; i++) {
+          if (entrees[i].isIntersecting) lancer();
+          else visite.pause();
+        }
+      }, { threshold: 0.25 }).observe(visite);
+    }
+
+    var bSon = document.querySelector('.js-son');
+    if (bSon) {
+      bSon.addEventListener('click', function () {
+        visite.muted = !visite.muted;
+        bSon.classList.toggle('is-audible', !visite.muted);
+        bSon.setAttribute('aria-label', visite.muted ? 'Activer le son' : 'Couper le son');
+        if (!visite.muted) lancer();
+      });
+    }
+
+    var bPlein = document.querySelector('.js-plein-ecran');
+    if (bPlein) {
+      bPlein.addEventListener('click', function () {
+        /* Safari iOS n'implémente le plein écran que sur l'élément vidéo. */
+        if (typeof visite.webkitEnterFullscreen === 'function') visite.webkitEnterFullscreen();
+        else if (typeof visite.requestFullscreen === 'function') visite.requestFullscreen().catch(function () {});
+        else if (typeof visite.webkitRequestFullscreen === 'function') visite.webkitRequestFullscreen();
+      });
+    }
+  }
+
   /* ---------- Formulaire Prodigio ----------
      L'iframe est écrit directement dans la modale, en loading="lazy" : il
      n'est chargé qu'à la première ouverture. Il annonce sa hauteur par

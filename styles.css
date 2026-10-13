@@ -500,6 +500,27 @@ a { color: inherit; }
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--accent-light); box-shadow: 0 0 8px var(--accent-light);
 }
+/* Le tap ne doit pas réveiller les contrôles natifs d'iOS par-dessus les
+   nôtres : la vidéo elle-même ne reçoit aucun pointeur. */
+.hero__shot video { pointer-events: none; }
+.hero__shot-cmd {
+  position: absolute; right: 12px; bottom: 12px;
+  display: flex; gap: 8px; z-index: 2;
+}
+.hero__shot-btn {
+  width: 40px; height: 40px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; cursor: pointer;
+  background: rgba(20,31,39,.62); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.18); color: #fff;
+  transition: background var(--t), border-color var(--t), transform var(--t);
+}
+.hero__shot-btn:hover, .hero__shot-btn:active {
+  background: rgba(20,31,39,.92); border-color: var(--accent-light); transform: scale(1.05);
+}
+.hero__shot-btn .i-son { display: none; }
+.hero__shot-btn.is-audible .i-muet { display: none; }
+.hero__shot-btn.is-audible .i-son { display: block; }
 @media (max-width: 1200px) { .hero__shot { display: block; } }
 
 /* --- carte de capture --- */

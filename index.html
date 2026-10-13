@@ -132,15 +132,37 @@
         </li>
       </ul>
 
-      <!-- Visuel du bien, affiché dans le flux sous le texte et au-dessus de
-           la carte de capture. Réservé aux écrans où la carte passe sous le
-           texte : au-dessus, la photo de couverture joue déjà ce rôle.
-           Quand les vidéos du bien seront disponibles, remplacer le <img>
-           par un <video muted loop playsinline>, la mise en forme suit. -->
+      <!-- Visite vidéo, dans le flux sous le texte et au-dessus de la carte
+           de capture. Réservée aux écrans où la carte passe sous le texte :
+           au-dessus, la vidéo de couverture joue déjà en fond.
+           Lecture automatique, muette et bouclée, avec deux commandes : le son
+           et le plein écran. Le <video> est en pointer-events: none pour que
+           le tap n'ouvre pas les contrôles natifs d'iOS par-dessus. -->
       <figure class="hero__shot">
-        <img src="assets/images/terrasse-etage-piscine.jpg" loading="eager"
-             alt="Depuis la terrasse de l'étage, la piscine, la baie de Cassis et le Cap Canaille" />
-        <figcaption class="hero__shot-tag"><span class="dot"></span>La villa · Cassis</figcaption>
+        <video autoplay muted loop playsinline webkit-playsinline="true"
+               preload="metadata" poster="assets/images/terrasse-etage-piscine.jpg"
+               aria-label="Visite vidéo de la Villa Verdun">
+          <source src="assets/video/teaser-verdun-480.webm" type="video/webm" />
+          <source src="assets/video/teaser-verdun-480.mp4" type="video/mp4" />
+        </video>
+        <figcaption class="hero__shot-tag"><span class="dot"></span>Visite vidéo · 1 min 45</figcaption>
+        <div class="hero__shot-cmd">
+          <button class="hero__shot-btn js-son" type="button" aria-label="Activer le son">
+            <svg class="i-muet" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
+              <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+            </svg>
+            <svg class="i-son" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            </svg>
+          </button>
+          <button class="hero__shot-btn js-plein-ecran" type="button" aria-label="Plein écran">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/>
+            </svg>
+          </button>
+        </div>
       </figure>
     </div>
 
