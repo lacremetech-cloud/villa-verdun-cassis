@@ -178,6 +178,50 @@
   var cadre = document.getElementById('prodigio-form');
   var attente = formContainer ? formContainer.querySelector('.modal__spinner') : null;
 
+  /* ---------- Report de l'attribution publicitaire ----------
+     Le formulaire vit sur go.prodigio.fr, dans un cadre : il ne voit donc
+     ni le fbclid ni les UTM que la publicite a deposes sur CETTE page.
+     Sans eux, Meta recoit bien le prospect, mais ne peut plus le rattacher
+     au clic qui l'a amene : l'attribution retombe sur la seule
+     correspondance e-mail / telephone, nettement moins fiable.
+
+     On recopie donc ces parametres sur l'adresse du cadre. Liste fermee :
+     rien d'autre ne passe, pour ne pas transporter par megarde ce qu'un
+     visiteur aurait colle dans son URL. */
+  var PARAMS_ATTRIBUTION = [
+    'fbclid', 'gclid',
+    'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'
+  ];
+
+  function reporterAttribution() {
+    if (!cadre) return;
+    var entrants;
+    try {
+      entrants = new URLSearchParams(window.location.search);
+    } catch (e) {
+      return; // Navigateur sans URLSearchParams : on ne casse rien.
+    }
+    var retenus = [];
+    for (var i = 0; i < PARAMS_ATTRIBUTION.length; i++) {
+      var cle = PARAMS_ATTRIBUTION[i];
+      var brut = entrants.get(cle);
+      if (!brut) continue;
+      var valeur = brut.trim();
+      if (!valeur) continue;
+      /* Meme plafond que le serveur, qui tronque a 300 caracteres. */
+      retenus.push(encodeURIComponent(cle) + '=' + encodeURIComponent(valeur.slice(0, 300)));
+    }
+    if (!retenus.length) return; // Visite directe : il n'y a rien a reporter.
+    /* Le cadre est en loading="lazy" dans une modale en display:none : il
+       n'a donc pas encore ete charge, et reecrire son adresse ici ne
+       recharge rien. On repart de l'adresse nue pour rester idempotent. */
+    var base = (cadre.getAttribute('src') || '').split('?')[0];
+    if (!base) return;
+    cadre.setAttribute('src', base + '?' + retenus.join('&'));
+  }
+
+  reporterAttribution();
+
   function retirerAttente() {
     if (attente && attente.parentNode) { attente.parentNode.removeChild(attente); attente = null; }
   }
