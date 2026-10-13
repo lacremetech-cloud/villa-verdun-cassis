@@ -389,16 +389,36 @@
   var affiche = false;
   function replier() {
     if (pret || repli || !formContainer || !cadre) return;
-    /* La page du cadre n'est jamais arrivee : le cadre est vide, c'est le seul
-       cas ou WhatsApp doit tout de suite prendre toute la place. */
-    if (!formCharge) { remplacerParWhatsapp(); return; }
-    /* La page est la, mais elle ne s'est pas encore signalee. On ne lui prend
-       PAS sa place : une ligne discrete en dessous, le temps que son
-       JavaScript finisse d'arriver. Mesure a l'appui, sur un reseau 3G bride,
-       ce signal met trente et une secondes — l'ancien delai de huit secondes
-       effacait donc un formulaire qui marchait tres bien. C'est exactement la
-       capture d'ecran recue. */
-    afficherSansHauteur();
+    /* La page du cadre est arrivee, elle ne s'est simplement pas encore
+       signalee. On ne lui prend PAS sa place : une ligne discrete en dessous,
+       le temps que son JavaScript finisse d'arriver. Mesure a l'appui, sur un
+       reseau 3G bride, ce signal met trente et une secondes — l'ancien delai
+       de huit secondes effacait donc un formulaire qui marchait tres bien. */
+    if (formCharge) { afficherSansHauteur(); poserLaLigne(); return; }
+
+    /* La page du cadre n'est pas encore arrivee. Deux situations opposees se
+       ressemblent ici : un service injoignable, et une page qui descend
+       lentement. Les confondre a un cout : en 3G bridee, mesure, le gros bloc
+       WhatsApp s'affichait a vingt secondes PUIS laissait la place au
+       formulaire a trente-trois — le visiteur voyait donc exactement la
+       capture d'ecran signalee, pour une page qui arrivait tres bien.
+
+       Une requete simple tranche : elle ne depend d'aucun JavaScript tiers et
+       echoue tout de suite quand le service est coupe. */
+    sonderLeService(function (joignable) {
+      if (pret || repli || !formContainer || !cadre) return;
+      if (!joignable) { remplacerParWhatsapp(); return; }
+      /* Le service repond : la page descend, voila tout. On garde l'esquisse,
+         qui dit honnetement « ca charge », et on ajoute la sortie de secours
+         sans rien effacer. */
+      poserLaLigne();
+    });
+  }
+
+  /* La sortie de secours discrete : elle s'ajoute, elle ne remplace rien, et
+     elle disparait d'elle-meme des que le formulaire se signale. */
+  function poserLaLigne() {
+    if (pret || repli || !formContainer) return;
     var ligne = document.createElement('p');
     ligne.style.cssText = 'font-size:13px;line-height:1.6;color:#8095A6;margin:14px 0 0;text-align:center';
     ligne.appendChild(document.createTextNode('Un souci avec le formulaire ? '));
@@ -411,6 +431,34 @@
     ligne.appendChild(document.createTextNode('.'));
     formContainer.appendChild(ligne);
     repli = [ligne];
+  }
+
+  /* Le cadre est d'une autre origine : rien, depuis cette page, ne permet de
+     voir ce qu'il contient — `contentDocument` vaut `null` aussi bien pour un
+     formulaire parfaitement affiche que pour un cadre refuse, verifie. On pose
+     donc la seule question a laquelle on peut repondre sans lui : la page du
+     formulaire repond-elle ? La reponse est opaque, on ne lit que le fait
+     qu'elle soit arrivee. */
+  function sonderLeService(suite) {
+    var adresse = cadre.getAttribute('src') || cadre.getAttribute('data-src');
+    if (!adresse || typeof fetch !== 'function') { suite(true); return; }
+    var encours = true;
+    function repondre(joignable) {
+      if (!encours) return;
+      encours = false;
+      clearTimeout(garde);
+      suite(joignable);
+    }
+    /* Une sonde qui traine ne doit pas retenir la suite indefiniment : on
+       penche alors du cote qui n'efface rien. */
+    var garde = setTimeout(function () { repondre(true); }, 4000);
+    try {
+      fetch(adresse, { mode: 'no-cors', cache: 'no-store', credentials: 'omit' })
+        .then(function () { repondre(true); })
+        .catch(function () { repondre(false); });
+    } catch (e) {
+      repondre(true);
+    }
   }
 
   /* Derniere echeance. Le formulaire s'envoie en JavaScript : sans son signal,
