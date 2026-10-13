@@ -296,12 +296,34 @@
      Idempotent : la premiere pose gagne, les suivantes ne font rien. */
   var formDemande = false;
   var formCharge = false;
+
+  /* Delai laisse au formulaire pour annoncer sa hauteur APRES que sa page est
+     arrivee. Passe ce delai, on l'affiche quand meme, a sa hauteur minimale.
+
+     Le dialogue de hauteur reste la bonne facon de faire : il dit a la fois
+     « je suis la » et « voila ma taille ». Mais il peut ne jamais venir pour
+     une raison qui ne regarde pas le visiteur — le formulaire charge pendant
+     que la modale est masquee, donc a une hauteur de zero, et une version du
+     formulaire qui ne republie pas sa hauteur a l'ouverture laisse l'hote dans
+     le noir. Entre montrer un formulaire charge sans connaitre sa taille et ne
+     rien montrer du tout, le choix est vite fait : le repli WhatsApp reste
+     dessous, et la hauteur affinera l'affichage si elle arrive ensuite. */
+  var DELAI_AFFICHAGE_FORCE = 2500;
   function chargerLeFormulaire() {
     if (formDemande || !cadre) return;
     formDemande = true;
     /* On NOTE l'arrivee de la page, on ne declenche aucun compte a rebours :
        le visiteur n'attend rien encore, la modale n'est pas ouverte. */
-    cadre.addEventListener('load', function () { formCharge = true; }, { once: true });
+    cadre.addEventListener('load', function () {
+      formCharge = true;
+      /* On n'affiche QUE si la modale est ouverte : afficher un cadre dans une
+         modale fermee ne sert a rien et ferait disparaitre l'esquisse trop
+         tot. */
+      setTimeout(function () {
+        if (!modal || !modal.classList.contains('is-open')) return;
+        afficherSansHauteur();
+      }, DELAI_AFFICHAGE_FORCE);
+    }, { once: true });
 
     /* Le script en ligne de index.html a normalement deja pose l'adresse : il
        vit dans le meme fichier que le cadre, il ne peut pas etre d'une autre
@@ -363,6 +385,15 @@
     formContainer.appendChild(a);
     repli = [p, a];
   }
+  /* Affiche le cadre sans attendre sa hauteur. Il garde sa hauteur minimale
+     (520 px) ; la modale defile si le formulaire est plus grand. */
+  function afficherSansHauteur() {
+    if (!cadre || pret) return;
+    deplier();
+    retirerAttente();
+    cadre.classList.add('is-ready');
+  }
+
   function deplier() {
     if (!repli) return;
     for (var i = 0; i < repli.length; i++) {
@@ -486,6 +517,9 @@
       if (adresse) { cadre.removeAttribute('src'); cadre.setAttribute('src', adresse); }
     }
     loadForm();
+    /* La page du formulaire est deja arrivee : on arme le secours ici, sinon
+       il n'aurait couru qu'au chargement, modale fermee. */
+    if (formCharge && !pret) setTimeout(afficherSansHauteur, DELAI_AFFICHAGE_FORCE);
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
     lockScroll();
