@@ -844,7 +844,52 @@ a { color: inherit; }
    capacité de se mesurer. L'attente est posée par-dessus. */
 #prodigio-form:not(.is-ready) { visibility: hidden; }
 
-.modal__spinner { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--soft-fg); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+/* ---------------------------------------------------------------------
+   Esquisse du formulaire
+
+   Un mot centre dans une boite vide de 520 px de haut fait paraitre
+   l'attente plus longue qu'elle n'est : l'oeil n'a rien a quoi se
+   raccrocher. L'esquisse montre tout de suite la FORME de ce qui arrive —
+   un titre, quatre choix, un bouton — et le cadre se pose dessus quand il
+   est pret. Elle disparait avec le mot d'attente, que main.js retire des
+   que le formulaire annonce sa hauteur.
+   --------------------------------------------------------------------- */
+.modal__esquisse {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 28px 24px;
+  pointer-events: none;
+}
+.modal__esquisse > * {
+  display: block; border-radius: 10px;
+  background: linear-gradient(
+    100deg,
+    rgba(20,31,39,.045) 30%,
+    rgba(20,31,39,.085) 50%,
+    rgba(20,31,39,.045) 70%
+  );
+  background-size: 300% 100%;
+  animation: esquisse 1.6s ease-in-out infinite;
+}
+.modal__esquisse-ligne--titre { height: 22px; width: 72%; margin-bottom: 10px; }
+.modal__esquisse-choix { height: 52px; }
+.modal__esquisse-bouton { height: 52px; margin-top: 6px; border-radius: 10px; }
+
+@keyframes esquisse {
+  0%   { background-position: 150% 0; }
+  100% { background-position: -50% 0; }
+}
+
+/* Mouvement reduit : on garde la forme, on retire l'animation. */
+@media (prefers-reduced-motion: reduce) {
+  .modal__esquisse > * { animation: none; }
+}
+
+.modal__spinner {
+  position: absolute; left: 0; right: 0; bottom: 18px;
+  margin: 0; text-align: center;
+  color: var(--soft-fg); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+}
 
 /* =====================================================================
    STICKY CTA

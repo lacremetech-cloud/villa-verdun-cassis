@@ -24,6 +24,11 @@
 <link rel="preload" as="image" href="assets/images/terrasse-piscine-mer.jpg" fetchpriority="high" />
 <link rel="preload" as="font" type="font/woff2" href="assets/fonts/cormorant-garamond-400-normal-latin.woff2" crossorigin />
 <link rel="preload" as="font" type="font/woff2" href="assets/fonts/jost-300-normal-latin.woff2" crossorigin />
+<!-- Le formulaire vit sur un autre domaine : ouvrir la connexion
+     maintenant epargne au visiteur la resolution DNS et la poignee de
+     main TLS au moment ou il clique, c est-a-dire au pire moment. -->
+<link rel="preconnect" href="https://go.prodigio.fr" crossorigin />
+<link rel="dns-prefetch" href="https://go.prodigio.fr" />
 <link rel="stylesheet" href="styles.css" />
 
 <!-- TODO Meta Pixel — en attente de l'identifiant du pixel dedie a ce bien -->
@@ -746,11 +751,26 @@
            visiteurs qui ne demandent pas la brochure. Il reste invisible
            jusqu'à ce qu'il annonce sa hauteur (voir main.js) : un visiteur
            ne voit jamais la page d'erreur du service. -->
+      <!-- L adresse est en data-src : c est main.js qui la pose, des que le
+           visiteur montre son intention (survol, contact, mise au point) ou au
+           repos de la page. Laissee dans src avec loading="lazy", dans une
+           modale masquee, elle n etait demandee qu au clic — et le visiteur
+           regardait un cadre vide pendant toute la requete. -->
       <iframe id="prodigio-form"
-              src="https://go.prodigio.fr/bien/villa-verdun/interet"
-              title="Demander la brochure" loading="lazy"
+              data-src="https://go.prodigio.fr/bien/villa-verdun/interet"
+              title="Demander la brochure"
               style="width:100%;border:0;min-height:520px;display:block"></iframe>
-      <div class="modal__spinner">Chargement du formulaire…</div>
+      <!-- Une esquisse du formulaire plutot qu un mot dans le vide : on voit
+           tout de suite la forme de ce qui arrive, et l attente parait courte. -->
+      <div class="modal__esquisse" aria-hidden="true">
+        <span class="modal__esquisse-ligne modal__esquisse-ligne--titre"></span>
+        <span class="modal__esquisse-choix"></span>
+        <span class="modal__esquisse-choix"></span>
+        <span class="modal__esquisse-choix"></span>
+        <span class="modal__esquisse-choix"></span>
+        <span class="modal__esquisse-bouton"></span>
+      </div>
+      <p class="modal__spinner">Chargement du formulaire…</p>
     </div>
   </div>
 </div>

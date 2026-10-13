@@ -277,19 +277,55 @@
       /* Meme plafond que le serveur, qui tronque a 300 caracteres. */
       retenus.push(encodeURIComponent(cle) + '=' + encodeURIComponent(valeur.slice(0, 300)));
     }
-    if (!retenus.length) return; // Visite directe : il n'y a rien a reporter.
-    /* Le cadre est en loading="lazy" dans une modale en display:none : il
-       n'a donc pas encore ete charge, et reecrire son adresse ici ne
-       recharge rien. On repart de l'adresse nue pour rester idempotent. */
-    var base = (cadre.getAttribute('src') || '').split('?')[0];
-    if (!base) return;
-    cadre.setAttribute('src', base + '?' + retenus.join('&'));
+    if (!retenus.length) return ''; // Visite directe : il n'y a rien a reporter.
+    return '?' + retenus.join('&');
   }
 
-  reporterAttribution();
+  /* ---------- Chargement anticipe du formulaire ----------
+     L'adresse n'est pas dans src : c'est ici qu'on la pose. Laissee dans src
+     avec loading="lazy", dans une modale en display:none, elle n'etait
+     demandee qu'au clic — le visiteur ouvrait la modale et regardait un cadre
+     vide pendant toute la requete, qui part sur un autre domaine et traverse
+     un rendu serveur.
 
+     On la pose donc des que l'intention se manifeste : un survol, un doigt
+     pose, une mise au point clavier sur l'un des boutons. Et, a defaut, au
+     repos de la page : un visiteur arrive sur cette page pour le dossier,
+     charger le formulaire d'avance n'est pas du gaspillage.
+
+     Idempotent : la premiere pose gagne, les suivantes ne font rien. */
+  var formDemande = false;
+  function chargerLeFormulaire() {
+    if (formDemande || !cadre) return;
+    var base = cadre.getAttribute('data-src');
+    if (!base) return;
+    formDemande = true;
+    loadForm();
+    cadre.setAttribute('src', base + reporterAttribution());
+  }
+
+  if (cadre) {
+    var boutons = document.querySelectorAll('.js-open-brochure');
+    for (var b = 0; b < boutons.length; b++) {
+      boutons[b].addEventListener('pointerenter', chargerLeFormulaire, { once: true });
+      boutons[b].addEventListener('focus', chargerLeFormulaire, { once: true });
+      boutons[b].addEventListener('touchstart', chargerLeFormulaire, { once: true, passive: true });
+    }
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(chargerLeFormulaire, { timeout: 3000 });
+    } else {
+      setTimeout(chargerLeFormulaire, 2000);
+    }
+  }
+
+  /* L'esquisse et le mot d'attente partent ENSEMBLE, au moment ou le
+     formulaire annonce sa hauteur. Laisser l'esquisse derriere un cadre
+     devenu opaque ne se verrait pas, mais elle continuerait a s'animer dans
+     le vide, pour rien. */
+  var esquisse = formContainer ? formContainer.querySelector('.modal__esquisse') : null;
   function retirerAttente() {
     if (attente && attente.parentNode) { attente.parentNode.removeChild(attente); attente = null; }
+    if (esquisse && esquisse.parentNode) { esquisse.parentNode.removeChild(esquisse); esquisse = null; }
   }
 
   /* Repli : si le formulaire n'annonce jamais sa hauteur (réseau coupé,
@@ -425,7 +461,7 @@
   function openModal() {
     if (!modal) return;
     lastFocused = document.activeElement;
-    loadForm();
+    chargerLeFormulaire();
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
     lockScroll();
