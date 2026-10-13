@@ -7,7 +7,7 @@ Site de présentation et brochure premium du bien, sur le modèle exact de la
 Villa contemporaine, 17 avenue de Verdun à Cassis. 135 m² habitables entièrement
 restructurés, plus de 600 m² de terrain paysagé, 4 chambres, 4 salles d'eau, 3 WC,
 studio indépendant de 16 m², piscine, vue mer et Cap Canaille, DPE B / GES A.
-**1 590 000 € FAI**
+**1 490 000 € FAI**
 (le prix figure dans la brochure, pas sur la landing, comme pour Jean Jaurès).
 
 ## Structure
