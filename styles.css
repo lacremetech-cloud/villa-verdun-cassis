@@ -180,11 +180,9 @@
   --accent-light:  #A9BCCB;
   --accent-deep:   #3A5163;
   --sand:          #C9B79E;
-  /* Terre cuite. Elle n'apparait QUE sur les deux moments de capture ; tout le
-     reste de la page garde le bleu-gris. C'est le contraste qui fait ressortir
-     ces blocs — repeindre la page entiere les noierait a nouveau. */
+  /* Terre cuite. Elle ne sert qu'au surtitre des deux moments de capture, et
+     nulle part ailleurs : une touche, pas une couleur de marque. */
   --terre:         #A8553A;
-  --terre-hover:   #8E4631;
   --border:        #E2DCD2;
   --border-strong: #C7BEB1;
   --dark:          #2E3D4A;
@@ -293,8 +291,6 @@ a { color: inherit; }
 .btn--sm { padding: 12px 22px; font-size: 11.5px; }
 .btn--lg { padding: 20px 42px; font-size: 13px; }
 .btn--block { width: 100%; }
-.btn--terre { background: var(--terre); color: #fff; border-color: var(--terre); }
-.btn--terre:hover { background: var(--terre-hover); border-color: var(--terre-hover); }
 
 /* ---------- Révélation au scroll ---------- */
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity var(--t-slow), transform var(--t-slow); }
@@ -968,43 +964,23 @@ a { color: inherit; }
 #bien, #galerie, #niveaux, #lieu, #process { scroll-margin-top: 88px; }
 
 /* =====================================================================
-   LES DEUX MOMENTS DE CAPTURE
+   LES DEUX MOMENTS DE CAPTURE — une touche, pas une refonte
    La carte du hero et la modale sont les deux seuls endroits ou l'on demande
-   quelque chose au visiteur. Ils portent, eux seuls, la couleur chaude : tout
-   le reste de la page garde le bleu-gris, et c'est ce contraste qui les fait
-   ressortir. Repeindre la page entiere les noierait a nouveau.
+   quelque chose au visiteur. Deux retouches, et rien d'autre : le surtitre
+   passe en terre cuite, et le gras souligne ce qui decide d'un clic — ce
+   qu'on recoit, en combien de temps. Le bleu-gris, les coches, le bouton et
+   le liseré de la carte ne bougent pas.
 
-   Ce bloc est en FIN de feuille a dessein : les regles d'origine
-   (`.hero__form-perks svg { color: var(--accent) }`, le liseré de la carte)
-   vivent plus bas que les utilitaires, et une declaration posee plus haut
-   perdait silencieusement — les coches restaient bleues.
+   Ce bloc est en FIN de feuille a dessein : les regles de la carte vivent
+   plus bas que les utilitaires, et une declaration posee plus haut perdrait
+   silencieusement.
 
-   Le gras obeit a la meme economie : il ne souligne que ce qui decide d'un
-   clic — ce qu'on recoit, en combien de temps, et a quoi on s'engage (rien).
-   Jost s'arrete a 500, Cormorant monte a 600 : chaque gras est un vrai
-   fichier de police deja charge, jamais un gras synthetique du navigateur,
-   et aucune requete n'est ajoutee.
+   Jost s'arrete a 500 : ce gras est un fichier de police deja charge, jamais
+   un gras synthetique du navigateur, et aucune requete n'est ajoutee. Les
+   titres restent en Cormorant sans gras — a cette taille, 500 et 600 ne se
+   distinguent pas, un gras invisible n'est pas un gras.
    ===================================================================== */
-.eyebrow--terre { color: var(--terre); letter-spacing: .26em; }
-
-/* Le titre pose son attaque en retrait et sa promesse en pleine encre : deux
-   graisses de Cormorant se distinguent mal a cette taille, deux valeurs se
-   lisent du premier coup d'oeil. */
-.hero__form-title,
-.modal__title { color: var(--muted-fg); }
-.hero__form-title strong,
-.modal__title strong { font-weight: 600; color: var(--fg); }
-
+.eyebrow--terre { color: var(--terre); }
 .hero__form-lede strong,
 .hero__form-perks strong,
 .modal__lede strong { font-weight: 500; color: var(--fg); }
-
-.hero__form-card { border: 1px solid rgba(168, 85, 58, .20); }
-.hero__form-card::before { width: 88px; height: 3px; background: var(--terre); }
-.hero__form-perks svg,
-.hero__form-trust svg { color: var(--terre); }
-
-/* Le nom du bien n'est pas une attaque de phrase : il revient en pleine encre,
-   sans gras. Trois valeurs, donc, et non deux — l'oeil lit « dossier complet »
-   puis le bien, et saute l'articulation. */
-.modal__title-bien { color: var(--fg); }
