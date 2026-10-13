@@ -756,7 +756,19 @@
            repos de la page. Laissee dans src avec loading="lazy", dans une
            modale masquee, elle n etait demandee qu au clic — et le visiteur
            regardait un cadre vide pendant toute la requete. -->
+      <!-- L adresse est DANS l attribut src, en dur. C est ce qui rend ce
+           cadre insensible a tout le reste : il se charge meme si main.js est
+           absent, en erreur, ou d une version plus ancienne gardee en cache par
+           le navigateur. C est exactement ce qui est arrive en production — un
+           onglet laisse ouvert servait un ancien main.js qui cherchait un
+           attribut que le nouveau HTML ne portait plus, et le visiteur ne voyait
+           jamais le formulaire. Aucun chargement de formulaire ne doit dependre
+           de l accord entre deux fichiers mis en cache separement.
+
+           Pas de loading="lazy" : dans une modale masquee, le navigateur
+           repoussait la requete jusqu au clic, c est-a-dire au pire moment. -->
       <iframe id="prodigio-form"
+              src="https://go.prodigio.fr/bien/villa-verdun/interet"
               data-src="https://go.prodigio.fr/bien/villa-verdun/interet"
               title="Demander la brochure"
               style="width:100%;border:0;min-height:520px;display:block"></iframe>
@@ -773,15 +785,15 @@
            meme main.js — et l attribution publicitaire est posee du premier
            coup, sans second chargement. -->
       <script>
+        /* L attribution publicitaire, et rien d autre. Le cadre charge deja
+           l adresse nue : on ne la reecrit QUE si la publicite a depose des
+           parametres, donc jamais pour une visite directe. */
         (function () {
           var c = document.getElementById('prodigio-form');
-          if (!c || c.getAttribute('src')) return;
-          var base = c.getAttribute('data-src');
-          if (!base) return;
-          var q = '';
+          if (!c) return;
+          var retenus = [];
           try {
             var entrants = new URLSearchParams(window.location.search);
-            var retenus = [];
             var cles = ['fbclid', 'gclid', 'utm_source', 'utm_medium',
                         'utm_campaign', 'utm_term', 'utm_content'];
             for (var i = 0; i < cles.length; i++) {
@@ -792,9 +804,10 @@
               /* Meme plafond que le serveur, qui tronque a 300 caracteres. */
               retenus.push(encodeURIComponent(cles[i]) + '=' + encodeURIComponent(v.slice(0, 300)));
             }
-            if (retenus.length) q = '?' + retenus.join('&');
-          } catch (e) { /* Navigateur sans URLSearchParams : on charge sans. */ }
-          c.setAttribute('src', base + q);
+          } catch (e) { return; }
+          if (!retenus.length) return;
+          var base = (c.getAttribute('src') || c.getAttribute('data-src') || '').split('?')[0];
+          if (base) c.setAttribute('src', base + '?' + retenus.join('&'));
         })();
       </script>
       <!-- Une esquisse du formulaire plutot qu un mot dans le vide : on voit
