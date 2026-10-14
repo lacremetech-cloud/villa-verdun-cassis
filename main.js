@@ -483,7 +483,7 @@
     var p = document.createElement('p');
     p.style.cssText = 'font-size:14.5px;line-height:1.7;color:#5E7386;margin:0 0 16px';
     p.textContent = "Le formulaire ne s'affiche pas ? Écrivez-nous directement, " +
-                    'nous vous transmettons le dossier sous 24 heures ouvrées.';
+                    'nous vous transmettons le dossier directement.';
     var a = document.createElement('a');
     a.className = 'btn btn--primary btn--block';
     a.href = 'https://wa.me/33668680407';

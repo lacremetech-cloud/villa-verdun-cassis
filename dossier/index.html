@@ -56,6 +56,49 @@
   .remise__image img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   @media (max-width: 899px) { .remise__image { min-height: 240px; order: -1; } }
 
+  /* Sur un téléphone, les deux boutons doivent être visibles SANS faire
+     défiler. C'est la seule action de la page, et une action qu'on ne voit
+     pas n'existe pas : le visiteur a rempli un formulaire pour arriver ici,
+     il ne doit pas avoir à chercher son dossier.
+     
+     Ce qui coince n'est pas la largeur mais la HAUTEUR : un iPhone SE et un
+     Pro Max ont la même largeur utile à peu de chose près, et deux cents
+     pixels d'écart en hauteur. Les réglages suivent donc `max-height`.
+     
+     Ce qu'on sacrifie en premier est l'image : elle montre une photo que le
+     visiteur vient de voir sur la page précédente, c'est le pixel le moins
+     utile de la page. */
+  @media (max-width: 899px) {
+    .remise__image { min-height: 148px; }
+    .remise__texte { padding: 28px 22px 44px; }
+    .remise__logo { height: 22px; margin-bottom: 20px; }
+    .remise__titre { margin: 10px 0 14px; }
+    .remise__lede { font-size: 15.5px; line-height: 1.68; margin: 0 0 22px; }
+    .remise__actions { margin-bottom: 28px; }
+  }
+
+  /* Écrans courts : la grande majorité des téléphones une fois la barre
+     d'adresse et la barre d'outils déduites. */
+  @media (max-width: 899px) and (max-height: 720px) {
+    .remise__image { min-height: 92px; }
+    .remise__texte { padding: 18px 22px 36px; }
+    .remise__logo { height: 20px; margin-bottom: 14px; }
+    .remise__titre { font-size: clamp(1.7rem, 1.15rem + 2.2vw, 2.3rem); margin: 6px 0 10px; }
+    .remise__lede { font-size: 15px; line-height: 1.6; margin: 0 0 16px; }
+    .remise__actions { gap: 10px; margin-bottom: 22px; }
+    .remise__actions .btn--lg { padding: 15px 20px; }
+  }
+
+  /* Très courts : SE, Android compacts, ou n'importe quel téléphone avec la
+     barre d'outils basse affichée. L'image disparaît — mieux vaut pas de
+     photo qu'un bouton qu'on ne voit pas. */
+  @media (max-width: 899px) and (max-height: 620px) {
+    .remise__image { display: none; }
+    .remise__texte { padding: 16px 22px 32px; }
+    .remise__titre { font-size: 1.65rem; }
+    .remise__lede { margin: 0 0 14px; }
+  }
+
   .remise__pied { margin-top: 34px; font-size: 12.5px; color: var(--soft-fg); line-height: 1.7; }
   .remise__pied a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 </style>
@@ -70,9 +113,9 @@
       <p class="eyebrow">Votre demande est enregistrée</p>
       <h1 class="remise__titre">Merci.<br />Voici votre dossier.</h1>
       <p class="remise__lede">
-        Le dossier complet de la Villa Verdun vous est ouvert : plans, prestations,
+        Le dossier complet de la Villa Verdun vous est ouvert&#8239;: plans, prestations,
         performance énergétique, prix et conditions d'acquisition. Prenez le
-        temps de le parcourir, nous revenons vers vous sous 24 heures ouvrées.
+        temps de le parcourir.
       </p>
 
       <div class="remise__actions">
@@ -85,7 +128,7 @@
         <p class="suite__titre">La suite</p>
         <ol class="suite__liste">
           <li><span class="suite__num">01</span><span>Vous consultez le dossier, librement et sans engagement.</span></li>
-          <li><span class="suite__num">02</span><span>Nous vous appelons sous 24 heures ouvrées pour répondre à vos questions.</span></li>
+          <li><span class="suite__num">02</span><span>Nous vous appelons pour répondre à vos questions.</span></li>
           <li><span class="suite__num">03</span><span>Nous organisons votre visite, sur place ou à distance.</span></li>
         </ol>
       </div>
