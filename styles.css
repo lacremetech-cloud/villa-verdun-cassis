@@ -820,6 +820,16 @@ a { color: inherit; }
   border-radius: var(--radius); box-shadow: var(--shadow-lg);
   max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
 }
+/* `vh` sur iOS designe le GRAND viewport, celui qu'on a quand les barres du
+   navigateur sont escamotees. Barres affichees — c'est-a-dire a l'ouverture,
+   c'est-a-dire toujours ici — le panneau depassait donc sous la barre d'outils,
+   et le bouton « Continuer » se retrouvait coupe en deux.
+   `svh` designe le PETIT viewport, barres comprises : le panneau tient alors
+   quoi qu'il arrive. Declare apres, il ne sert qu'aux navigateurs qui le
+   comprennent ; les autres gardent `vh`. */
+@supports (height: 100svh) {
+  .modal__panel { margin: 6svh auto; max-height: 88svh; }
+}
 .modal__close {
   position: absolute; top: 12px; right: 12px; width: 40px; height: 40px;
   background: none; border: 0; color: var(--muted-fg); font-size: 26px; line-height: 1;
@@ -838,6 +848,41 @@ a { color: inherit; }
   .modal__head { padding: 34px 24px 0; }
   .modal__form { padding: 22px 24px 28px; }
 }
+
+/* Ecrans courts : la hauteur manque, pas la largeur.
+   
+   Ce qu'on rend au formulaire vient de l'EN-TETE, et c'est deliberé : il
+   repete l'argumentaire a quelqu'un qui vient de cliquer « recevez la
+   brochure ». La personne a deja decide ; ce qu'elle attend, c'est la
+   premiere question et le bouton pour y repondre. Sur un telephone, cet
+   en-tete occupait plus du tiers de l'ecran. */
+@media (max-height: 760px) {
+  @supports (height: 100svh) {
+    .modal__panel { margin: 3svh auto; max-height: 94svh; }
+  }
+  .modal__head { padding: 22px 22px 0; }
+  .modal__head .eyebrow { margin-bottom: 10px; }
+  .modal__title { font-size: clamp(19px, 4.6vw, 23px); margin-bottom: 8px; }
+  .modal__lede { font-size: 13.5px; line-height: 1.45; }
+  .modal__form { padding: 14px 22px 18px; min-height: 160px; }
+  .modal__close { top: 4px; right: 4px; width: 36px; height: 36px; }
+}
+
+/* Tres courts : le chapeau disparait. Il porte « acces immediat, sans
+   engagement » — un argument, pas une consigne : la personne le lira sur la
+   page, pas dans la boite ou elle remplit deja le formulaire. Mieux vaut cet
+   argument en moins qu'un bouton qu'il faut aller chercher. */
+@media (max-height: 660px) {
+  @supports (height: 100svh) {
+    .modal__panel { margin: 2svh auto; max-height: 96svh; }
+  }
+  .modal__lede { display: none; }
+  .modal__head { padding: 18px 22px 0; }
+  .modal__head .eyebrow { margin-bottom: 8px; }
+  .modal__title { font-size: clamp(18px, 4.4vw, 22px); margin-bottom: 0; }
+  .modal__form { padding: 12px 22px 16px; }
+}
+
 /* Le formulaire est servi par Prodigio dans un iframe : il apporte ses
    propres styles. On se contente de l'empêcher de déborder de la modale,
    sa hauteur étant posée par le script à la réception de son message. */
