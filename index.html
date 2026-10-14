@@ -802,8 +802,13 @@
               if (!v) continue;
               v = v.trim();
               if (!v) continue;
-              /* Meme plafond que le serveur, qui tronque a 300 caracteres. */
-              retenus.push(encodeURIComponent(cles[i]) + '=' + encodeURIComponent(v.slice(0, 300)));
+              /* Meme plafond que le serveur. Les identifiants de clic
+                 publicitaire ont le leur, bien plus haut : Meta refuse un
+                 `fbclid` tronque, il signale alors une « valeur modifiee » et
+                 degrade la qualite de correspondance. Ceux recus aujourd hui
+                 font 195 a 201 caracteres, et ils s allongent avec les annees. */
+              var plafond = (cles[i] === 'fbclid' || cles[i] === 'gclid') ? 1000 : 300;
+              retenus.push(encodeURIComponent(cles[i]) + '=' + encodeURIComponent(v.slice(0, plafond)));
             }
           } catch (e) { return; }
           if (!retenus.length) return;
