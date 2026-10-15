@@ -8,11 +8,24 @@ en ligne. Il répond en premier, et on le tient à jour.
 | | |
 |---|---|
 | **Projet** | Landing Villa Verdun |
-| **Branche servie par Vercel** | `claude/intelligent-rubin-0sbqog` |
+| **Branche servie par Vercel** | `main` |
 | **Adresse publique** | https://villa-verdun-cassis.vercel.app |
 
 **Pousser sur cette branche déploie.** Pousser ailleurs ne déploie rien — y
 compris sur `main` si ce n'est pas la branche ci-dessus.
+
+## Une confusion à ne pas refaire
+
+La branche par défaut de **GitHub** et la branche de production de **Vercel**
+sont deux réglages distincts, qui peuvent différer. Sur le dépôt voisin
+(Jean Jaurès) ils différaient, et ça a été lu de travers une fois.
+
+**Seul le réglage Vercel compte** pour savoir ce qui est en ligne :
+*Project Settings → Environments → Production → Branch Tracking*.
+
+Ce projet a longtemps servi `claude/intelligent-rubin-0sbqog`, une branche de
+travail au nom illisible que personne ne pouvait deviner. Il sert `main` depuis
+le 16 octobre.
 
 ## Vérifier ce qui est réellement en ligne
 
@@ -37,7 +50,7 @@ Revenir au commit précédent et pousser :
 
 ```sh
 git revert --no-edit <commit fautif>
-git push origin claude/intelligent-rubin-0sbqog
+git push origin main
 ```
 
 Vercel reconstruit. Ne pas changer la branche de production pour « forcer » une

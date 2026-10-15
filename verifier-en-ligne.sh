@@ -6,7 +6,7 @@
 # la page réellement servie au contenu de la branche déclarée dans LIVRAISON.md.
 set -u
 
-BRANCHE="${1:-claude/intelligent-rubin-0sbqog}"
+BRANCHE="${1:-main}"
 URL="${2:-https://villa-verdun-cassis.vercel.app}"
 
 echo "Branche déclarée : $BRANCHE"
