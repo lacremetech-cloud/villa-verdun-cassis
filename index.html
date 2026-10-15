@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="Villa contemporaine à vendre à Cassis (Bouches-du-Rhône), avenue de Verdun. près de 140 m² restructurés sur plus de 600 m² de terrain paysagé, 4 chambres et 4 salles d'eau, studio indépendant, piscine, vue mer et Cap Canaille exceptionnelle. Brochure confidentielle sur demande." />
+<meta name="description" content="Villa contemporaine à vendre à Cassis (Bouches-du-Rhône), avenue de Verdun. près de 140 m² restructurés sur plus de 600 m² de terrain paysagé, 4 chambres et 4 salles d'eau, studio indépendant, piscine, vue mer et Cap Canaille exceptionnelle. Brochure détaillée sur demande." />
 <meta name="theme-color" content="#22333F" />
 
 <meta property="og:title" content="Villa Verdun · Villa contemporaine vue mer à Cassis · Brochure sur demande" />
@@ -123,6 +123,25 @@
         Vue mer et Cap Canaille.
       </p>
 
+      <!-- L'APPEL À L'ACTION DU PREMIER ÉCRAN.
+           Il n'y en avait aucun d'atteignable avant 983 px : les deux boutons
+           du haut vivent dans le menu replié (hauteur 0 sur mobile) et la
+           barre flottante attendait la sortie du hero pour s'allumer. Un
+           visiteur venu d'une publicité arrivait donc sur un titre, un
+           sous-titre et une vidéo, sans un seul moyen de demander la
+           brochure — c'est-à-dire sans rien à faire.
+           Il est placé AVANT la vidéo, et pas après : sur un écran de 664 px
+           (navigateur intégré de Facebook, iPhone), la vidéo commence vers
+           415 px et pousserait le bouton hors de vue. -->
+      <div class="hero__cta" id="heroCta">
+        <button class="btn btn--primary btn--lg btn--block js-open-brochure" type="button">
+          Recevoir la brochure
+        </button>
+        <p class="hero__cta-micro">
+          Plans, prestations et prix &middot; Accès immédiat &middot; Sans engagement
+        </p>
+      </div>
+
       <ul class="hero__features">
         <li>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
@@ -178,7 +197,7 @@
 
     <aside class="hero__form-wrap" id="brochureForm">
       <div class="hero__form-card">
-        <div class="eyebrow eyebrow--terre">Brochure confidentielle</div>
+        <div class="eyebrow eyebrow--terre">Brochure détaillée</div>
         <h2 class="hero__form-title">
           Recevoir le dossier&nbsp;complet
         </h2>
@@ -737,7 +756,7 @@
   <div class="modal__panel">
     <button class="modal__close js-close-modal" type="button" aria-label="Fermer">&times;</button>
     <div class="modal__head">
-      <div class="eyebrow eyebrow--terre">Brochure confidentielle</div>
+      <div class="eyebrow eyebrow--terre">Brochure détaillée</div>
       <h3 class="modal__title" id="modalTitle">
         Recevez le dossier complet<br />de la Villa Verdun.
       </h3>

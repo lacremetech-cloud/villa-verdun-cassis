@@ -158,15 +158,26 @@
     });
   }
 
-  /* ---------- CTA flottante : visible une fois le hero passé ----------
-     On attend la sortie du hero pour ne pas recouvrir le formulaire
-     qui s'y trouve déjà sur mobile. */
+  /* ---------- CTA flottante : visible dès qu'aucune autre n'est à l'écran ---
+     Elle suivait la sortie du HERO. Le hero mesure près de 1 000 px sur
+     mobile : il fallait donc le traverser en entier — titre, sous-titre et
+     vidéo — avant qu'un bouton n'apparaisse. Pendant tout ce temps, un
+     visiteur venu d'une publicité n'avait rien à toucher.
+
+     Elle suit maintenant le bouton du premier écran, ce qui exprime la vraie
+     règle : « aucun appel à l'action visible → en montrer un ». Le relais se
+     fait au pixel près, sans recouvrement et sans trou. */
   var stickyCta = document.getElementById('stickyCta');
-  var hero = document.getElementById('hero');
-  if (stickyCta && hero && 'IntersectionObserver' in window) {
+  var heroCta = document.getElementById('heroCta');
+  var relais = heroCta || document.getElementById('hero');
+  if (stickyCta && relais && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) {
       stickyCta.classList.toggle('is-visible', !entries[0].isIntersecting);
-    }, { threshold: 0, rootMargin: '-120px 0px 0px 0px' }).observe(hero);
+    }, { threshold: 0 }).observe(relais);
+  } else if (stickyCta) {
+    /* Sans IntersectionObserver, mieux vaut une barre toujours là qu'un
+       visiteur sans bouton : le défaut est le choix sûr. */
+    stickyCta.classList.add('is-visible');
   }
 
   /* ---------- Révélations au scroll ---------- */
