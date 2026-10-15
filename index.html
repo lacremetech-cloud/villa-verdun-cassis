@@ -253,28 +253,35 @@
              alt="Les baies à galandage ouvertes sur la terrasse, la piscine et le Cap Canaille" />
       </div>
 
-      <div class="tile">
+      <div class="tile" style="--tile-c:#5C7488">
         <div class="tile__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 3v18"/></svg></div>
-        <div class="tile__key">135 <span>m²</span></div>
+        <div class="tile__key"><span class="tile__num" data-vers="135">135</span> <span>m²</span></div>
         <div class="tile__label">Habitables</div>
       </div>
 
-      <div class="tile">
+      <div class="tile" style="--tile-c:#6F7551">
         <div class="tile__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l9 6v13H3V8z"/><path d="M9 21v-7h6v7"/></svg></div>
-        <div class="tile__key">600 <span>m²</span></div>
+        <div class="tile__key"><span class="tile__num" data-vers="600">600</span> <span>m²</span></div>
         <div class="tile__label">Et plus de terrain paysagé</div>
       </div>
 
-      <div class="tile">
+      <div class="tile" style="--tile-c:#3E8E96">
         <div class="tile__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V9a2 2 0 012-2h14a2 2 0 012 2v9"/><path d="M3 14h18M7 7V5h10v2"/></svg></div>
-        <div class="tile__key">4</div>
+        <div class="tile__key"><span class="tile__num" data-vers="4">4</span></div>
         <div class="tile__label">Chambres, 4 salles d'eau</div>
       </div>
 
-      <div class="tile">
+      <div class="tile" style="--tile-c:#B99A6B">
         <div class="tile__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18v-6a2 2 0 012-2h12a2 2 0 012 2v6"/><path d="M2 18h20M6 10V7a2 2 0 012-2h8a2 2 0 012 2v3"/></svg></div>
-        <div class="tile__key">52 <span>m²</span></div>
+        <div class="tile__key"><span class="tile__num" data-vers="52">52</span> <span>m²</span></div>
         <div class="tile__label">De pièce de vie</div>
+      </div>
+
+      <!-- Respiration : elle coupe la succession de tuiles claires au lieu
+           de s'y fondre. Masquée au-dessus de 1020 px, où la grille en
+           quatre colonnes tient déjà seule. -->
+      <div class="tile tile--photo tile--respiration">
+        <img src="assets/images/dedans-dehors.jpg" loading="lazy" alt="La pièce de vie ouverte de plain-pied sur la terrasse et le jardin" />
       </div>
 
       <div class="tile tile--dark">
@@ -283,19 +290,26 @@
         <div class="tile__label">Indépendant, 16 m²</div>
       </div>
 
-      <div class="tile">
+      <div class="tile" style="--tile-c:#4A7B8F">
         <div class="tile__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20c1.5 0 1.5-1.2 3-1.2s1.5 1.2 3 1.2 1.5-1.2 3-1.2 1.5 1.2 3 1.2 1.5-1.2 3-1.2 1.5 1.2 3 1.2"/><path d="M2 14l10-9 10 9"/></svg></div>
         <div class="tile__key">Vue mer</div>
         <div class="tile__label">Et Cap Canaille</div>
       </div>
 
-      <div class="tile">
+      <div class="tile" style="--tile-c:#5FA8B8">
         <div class="tile__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 17c2 0 2 1.5 4 1.5S8 17 10 17s2 1.5 4 1.5S16 17 18 17s2 1.5 4 1.5"/><path d="M7 15V5a2 2 0 014 0v10M13 15V5a2 2 0 014 0v10M7 8h10M7 11h10"/></svg></div>
         <div class="tile__key">Piscine</div>
         <div class="tile__label">Et jardin paysagé</div>
       </div>
 
-      <div class="tile">
+      <!-- Respiration : elle coupe la succession de tuiles claires au lieu
+           de s'y fondre. Masquée au-dessus de 1020 px, où la grille en
+           quatre colonnes tient déjà seule. -->
+      <div class="tile tile--photo tile--respiration">
+        <img src="assets/images/terrasse-etage-cap.jpg" loading="lazy" alt="La terrasse de l'étage face au Cap Canaille" />
+      </div>
+
+      <div class="tile" style="--tile-c:#7F8C7A">
         <div class="tile__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V9l9-5 9 5v12"/><path d="M6 21v-8h12v8M6 16h12"/></svg></div>
         <div class="tile__key">Garage</div>
         <div class="tile__label">Fermé, et stationnements</div>

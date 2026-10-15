@@ -201,6 +201,42 @@
     carte.classList.add('is-ouvert');
   }
 
+  /* ---------- Chiffres qui s'incrémentent ----------
+     Les nombres de la carte d'identité montent depuis zéro à leur première
+     apparition. Rien ne bouge si l'utilisateur a réduit les animations : la
+     valeur finale est déjà écrite dans le HTML, elle reste simplement
+     affichée — et il en va de même sans JavaScript. */
+  var compteurs = document.querySelectorAll('.tile__num');
+  var animationsReduites = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function incrementer(el) {
+    var cible = parseInt(el.dataset.vers, 10);
+    if (isNaN(cible)) return;
+    var duree = 1100;
+    var debut = null;
+    function pas(t) {
+      if (debut === null) debut = t;
+      var p = Math.min((t - debut) / duree, 1);
+      /* Décélération : le chiffre part vite et se pose sur sa valeur. */
+      var e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(cible * e);
+      if (p < 1) requestAnimationFrame(pas);
+      else el.textContent = cible;
+    }
+    requestAnimationFrame(pas);
+  }
+
+  if (compteurs.length && !animationsReduites && 'IntersectionObserver' in window) {
+    var obsChiffres = new IntersectionObserver(function (entries, obs) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        incrementer(entry.target);
+        obs.unobserve(entry.target);
+      });
+    }, { threshold: 0.6 });
+    compteurs.forEach(function (el) { el.textContent = '0'; obsChiffres.observe(el); });
+  }
+
   /* ---------- Révélations au scroll ---------- */
   var revealables = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
@@ -233,9 +269,44 @@
      restant neutralisées par pointer-events: none. */
   var visite = document.querySelector('.hero__shot video');
   if (visite) {
-    var lancer = function () { var p = visite.play(); if (p && p.catch) p.catch(function () {}); };
+    var lancer = function () {
+      /* Inutile de redemander si elle joue deja : un play() sur une video en
+         cours remet le compteur de tentatives a zero pour rien. */
+      if (!visite.paused) return;
+      var p = visite.play();
+      if (p && p.catch) p.catch(function () {});
+    };
     lancer();
-    document.addEventListener('touchstart', lancer, { once: true, passive: true });
+
+    /*
+     * ON RELANCE QUAND LES IMAGES ARRIVENT, et pas seulement au chargement.
+     *
+     * LE DEFAUT : `preload="metadata"` ne telecharge que l'entete. A la
+     * premiere visite, le fichier n'est pas en cache et le seul play() partait
+     * alors qu'aucune image n'etait disponible. S'il echouait, RIEN ne
+     * reessayait : le visiteur restait sur l'affiche. Au rechargement, la
+     * video etait en cache, les images etaient la tout de suite, et elle
+     * partait — d'ou « il faut rafraichir pour qu'elle se lance ».
+     *
+     * Ces evenements se declenchent exactement au moment ou la lecture
+     * devient possible. Aucun cout quand elle a deja demarre : `lancer` sort
+     * immediatement.
+     */
+    ['loadeddata', 'canplay', 'canplaythrough'].forEach(function (e) {
+      visite.addEventListener(e, lancer);
+    });
+
+    /* Revenir sur l'onglet, ou sortir du multitache : iOS suspend la lecture
+       et ne la reprend pas toujours seul. */
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) lancer();
+    });
+
+    /* Dernier recours, le geste du visiteur. `pointerdown` en plus de
+       `touchstart` : le premier couvre aussi la souris et le stylet. */
+    ['touchstart', 'pointerdown'].forEach(function (e) {
+      document.addEventListener(e, lancer, { once: true, passive: true });
+    });
 
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (entrees) {
