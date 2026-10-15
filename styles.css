@@ -282,19 +282,6 @@ a { color: inherit; }
   transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
 }
 .btn:active { transform: translateY(1px); }
-/* Terre cuite pour LE bouton de capture, et lui seul.
-   La charte réservait cette couleur au surtitre — « une touche, pas une
-   couleur de marque ». Elle passe ici sur le bouton pour une raison
-   mesurable : la carte se détache sur une photographie bleu nuit, et le bleu
-   de la charte s'y fond au lieu d'en sortir.
-
-   Elle habille les DEUX endroits où l'on demande la brochure — la carte et la
-   barre flottante — parce que c'est la même action : elle ne doit pas changer
-   de couleur selon l'endroit où on la rencontre. Tous les autres boutons du
-   site restent bleus, et c'est ce qui laisse à celui-ci sa valeur de signal. */
-.btn--terre { background: var(--terre); color: #fff; border-color: var(--terre); }
-.btn--terre:hover { background: #8F462F; border-color: #8F462F; }
-
 /* Le sceau : un cadenas dont l'anse se soulève et pivote quand la carte
    arrive à l'écran. « Ça se déverrouille », dit sans un mot de plus. */
 .brochure-sceau { display: inline-flex; align-items: center; gap: .5rem; }
@@ -617,12 +604,15 @@ a { color: inherit; }
   .hero__left { text-align: center; }
   .hero__pill, .hero__kicker { margin-left: auto; margin-right: auto; }
   .hero__kicker { display: table; }
-  /* Taille FLUIDE, et non une valeur fixe. « CONTEMPORAINE » est le mot le
-     plus large du titre : à 2,9 rem il sortait de 27 px sur un écran de
-     390 px, et de bien plus sur un 320. Mesuré ligne par ligne sur l'étendue
-     réelle des glyphes, le plafond sûr va de 34,5 px (320) à 42,5 px (390) —
-     d'où cette pente, qui s'y tient avec un pixel de marge. */
-  .hero__title { font-size: clamp(1.95rem, 10.6vw, 2.6rem); line-height: .96; margin-bottom: .9rem; }
+  /* Taille FLUIDE, et non une valeur fixe.
+     Le titre doit tenir sur DEUX lignes : « Villa vue mer » puis « à Cassis ».
+     Une troisième ligne casse la tenue du hero, et c'est elle qui limite, pas
+     le débordement. Mesuré ligne par ligne sur l'étendue réelle des glyphes,
+     le plafond va de 38,5 px (320) à 53,5 px (430) — d'où cette pente, qui
+     s'y tient avec un pixel de marge.
+     « vue mer » a laissé de la place : l'ancien titre plafonnait 7 px plus
+     bas à cause du seul mot « contemporaine ». */
+  .hero__title { font-size: clamp(2.3rem, calc(13.6vw - 6px), 3.3rem); line-height: .96; margin-bottom: .9rem; }
   .hero__subtitle { font-size: .95rem; margin-left: auto; margin-right: auto; max-width: 34ch; }
   .hero__form-card { text-align: left; }
   .hero__features { display: none; }   /* déjà résumé dans le sous-titre */
