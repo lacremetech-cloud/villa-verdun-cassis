@@ -168,16 +168,37 @@
      règle : « aucun appel à l'action visible → en montrer un ». Le relais se
      fait au pixel près, sans recouvrement et sans trou. */
   var stickyCta = document.getElementById('stickyCta');
-  var heroCta = document.getElementById('heroCta');
-  var relais = heroCta || document.getElementById('hero');
-  if (stickyCta && relais && 'IntersectionObserver' in window) {
+  var carte = document.getElementById('brochureForm');
+  /* On suit le BOUTON de la carte, pas la carte.
+     Sur un grand écran, la carte entrait dans le champ alors que son bouton
+     etait encore dessous : la barre s'eteignait, et il ne restait rien a
+     toucher. Le bouton est la seule chose dont l'absence compte. */
+  var boutonCarte = carte && carte.querySelector('.js-open-brochure');
+  if (stickyCta && boutonCarte && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) {
       stickyCta.classList.toggle('is-visible', !entries[0].isIntersecting);
-    }, { threshold: 0 }).observe(relais);
+    }, { threshold: 1 }).observe(boutonCarte);
   } else if (stickyCta) {
     /* Sans IntersectionObserver, mieux vaut une barre toujours là qu'un
        visiteur sans bouton : le défaut est le choix sûr. */
     stickyCta.classList.add('is-visible');
+  }
+
+  /* ---------- Le cadenas de la carte s'ouvre quand elle arrive ----------
+     Il se déverrouille UNE fois, à l'entrée à l'écran. Rejouer l'animation à
+     chaque passage la transformerait en clignotement, et un mouvement qui se
+     répète cesse d'être lu comme un signal. */
+  if (carte && 'IntersectionObserver' in window) {
+    var sceau = new IntersectionObserver(function (entries, obs) {
+      if (!entries[0].isIntersecting) return;
+      /* Un temps avant l'ouverture : le geste doit être VU, et il ne l'est
+         pas s'il a déjà eu lieu quand le regard arrive. */
+      setTimeout(function () { carte.classList.add('is-ouvert'); }, 420);
+      obs.disconnect();
+    }, { threshold: 0.35 });
+    sceau.observe(carte);
+  } else if (carte) {
+    carte.classList.add('is-ouvert');
   }
 
   /* ---------- Révélations au scroll ---------- */
