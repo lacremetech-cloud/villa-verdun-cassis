@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#22333F" />
+<!-- Page de remise du dossier. Elle n'est atteinte qu'après un dépôt valide
+     dans le formulaire Prodigio, qui en renvoie l'adresse. Jamais indexée :
+     elle n'a rien à faire dans un moteur de recherche. -->
+<meta name="robots" content="noindex, nofollow" />
+<title>Votre dossier · la Villa Verdun</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+<link rel="preload" as="font" type="font/woff2" href="../assets/fonts/cormorant-garamond-400-normal-latin.woff2" crossorigin />
+<link rel="preload" as="font" type="font/woff2" href="../assets/fonts/jost-300-normal-latin.woff2" crossorigin />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  /* Page autonome : une seule colonne centrée, aucune navigation. Le visiteur
+     vient d'un formulaire, il n'a qu'une chose à faire ici. */
+  .remise { min-height: 100svh; display: grid; grid-template-columns: 1fr; }
+  @media (min-width: 900px) { .remise { grid-template-columns: 1.05fr .95fr; } }
+
+  .remise__texte {
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 56px 24px; background: var(--bg);
+  }
+  @media (min-width: 900px) { .remise__texte { padding: 72px 64px; } }
+  .remise__contenu { max-width: 520px; margin: 0 auto; width: 100%; }
+
+  .remise__logo { height: 26px; width: auto; margin-bottom: 40px; opacity: .9; }
+
+  .remise__titre {
+    font-family: var(--serif); font-weight: 400; line-height: 1.08;
+    font-size: clamp(2rem, 1.3rem + 2.6vw, 3.1rem);
+    color: var(--fg); margin: 14px 0 20px; text-transform: uppercase;
+    letter-spacing: .01em;
+  }
+  .remise__lede { font-size: 16px; line-height: 1.75; color: var(--muted-fg); margin: 0 0 32px; }
+
+  .remise__actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 36px; }
+  @media (min-width: 520px) { .remise__actions { flex-direction: row; } .remise__actions .btn { flex: 1; } }
+
+  /* Ce qui se passe ensuite : trois repères, pas un paragraphe de plus. */
+  .suite { border-top: 1px solid var(--border); padding-top: 26px; }
+  .suite__titre {
+    font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--soft-fg); margin: 0 0 16px;
+  }
+  .suite__liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 13px; }
+  .suite__liste li {
+    display: grid; grid-template-columns: 22px 1fr; gap: 12px;
+    font-size: 14.5px; line-height: 1.65; color: var(--muted-fg);
+  }
+  .suite__num { color: var(--accent); font-variant-numeric: tabular-nums; }
+
+  .remise__image { position: relative; min-height: 300px; background: var(--dark-2); }
+  .remise__image img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  @media (max-width: 899px) { .remise__image { min-height: 240px; order: -1; } }
+
+  /* Sur un téléphone, les deux boutons doivent être visibles SANS faire
+     défiler. C'est la seule action de la page, et une action qu'on ne voit
+     pas n'existe pas : le visiteur a rempli un formulaire pour arriver ici,
+     il ne doit pas avoir à chercher son dossier.
+     
+     Ce qui coince n'est pas la largeur mais la HAUTEUR : un iPhone SE et un
+     Pro Max ont la même largeur utile à peu de chose près, et deux cents
+     pixels d'écart en hauteur. Les réglages suivent donc `max-height`.
+     
+     Ce qu'on sacrifie en premier est l'image : elle montre une photo que le
+     visiteur vient de voir sur la page précédente, c'est le pixel le moins
+     utile de la page. */
+  @media (max-width: 899px) {
+    .remise__image { min-height: 148px; }
+    .remise__texte { padding: 28px 22px 44px; }
+    .remise__logo { height: 22px; margin-bottom: 20px; }
+    .remise__titre { margin: 10px 0 14px; }
+    .remise__lede { font-size: 15.5px; line-height: 1.68; margin: 0 0 22px; }
+    .remise__actions { margin-bottom: 28px; }
+  }
+
+  /* Écrans courts : la grande majorité des téléphones une fois la barre
+     d'adresse et la barre d'outils déduites. */
+  @media (max-width: 899px) and (max-height: 720px) {
+    .remise__image { min-height: 92px; }
+    .remise__texte { padding: 18px 22px 36px; }
+    .remise__logo { height: 20px; margin-bottom: 14px; }
+    .remise__titre { font-size: clamp(1.7rem, 1.15rem + 2.2vw, 2.3rem); margin: 6px 0 10px; }
+    .remise__lede { font-size: 15px; line-height: 1.6; margin: 0 0 16px; }
+    .remise__actions { gap: 10px; margin-bottom: 22px; }
+    .remise__actions .btn--lg { padding: 15px 20px; }
+  }
+
+  /* Très courts : SE, Android compacts, ou n'importe quel téléphone avec la
+     barre d'outils basse affichée. L'image disparaît — mieux vaut pas de
+     photo qu'un bouton qu'on ne voit pas. */
+  @media (max-width: 899px) and (max-height: 620px) {
+    .remise__image { display: none; }
+    .remise__texte { padding: 16px 22px 32px; }
+    .remise__titre { font-size: 1.65rem; }
+    .remise__lede { margin: 0 0 14px; }
+  }
+
+  .remise__pied { margin-top: 34px; font-size: 12.5px; color: var(--soft-fg); line-height: 1.7; }
+  .remise__pied a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+</style>
+</head>
+<body>
+
+<main class="remise">
+  <div class="remise__texte">
+    <div class="remise__contenu">
+      <img class="remise__logo" src="../assets/brand/prodigio-encre.png" alt="Prodigio" />
+
+      <p class="eyebrow">Votre demande est enregistrée</p>
+      <h1 class="remise__titre">Merci.<br />Voici votre dossier.</h1>
+      <p class="remise__lede">
+        Le dossier complet de la Villa Verdun vous est ouvert&#8239;: plans, prestations,
+        performance énergétique, prix et conditions d'acquisition. Prenez le
+        temps de le parcourir.
+      </p>
+
+      <div class="remise__actions">
+        <a class="btn btn--primary btn--lg" href="../brochure/">Ouvrir le dossier</a>
+        <a class="btn btn--ghost btn--lg" href="https://wa.me/33668680407"
+           target="_blank" rel="noopener noreferrer">Nous écrire</a>
+      </div>
+
+      <div class="suite">
+        <p class="suite__titre">La suite</p>
+        <ol class="suite__liste">
+          <li><span class="suite__num">01</span><span>Vous consultez le dossier, librement et sans engagement.</span></li>
+          <li><span class="suite__num">02</span><span>Nous vous appelons pour répondre à vos questions.</span></li>
+          <li><span class="suite__num">03</span><span>Nous organisons votre visite, sur place ou à distance.</span></li>
+        </ol>
+      </div>
+
+      <p class="remise__pied">
+        Ce lien vous est personnel. Une question dans l'intervalle ?
+        <a href="https://wa.me/33668680407" target="_blank" rel="noopener noreferrer">Écrivez-nous sur WhatsApp</a>.
+      </p>
+    </div>
+  </div>
+
+  <div class="remise__image">
+    <img src="../assets/images/galandage-piscine-cap.jpg" alt="La Villa Verdun, baies à galandage ouvertes sur la piscine et le Cap Canaille" />
+  </div>
+</main>
+
+</body>
+</html>

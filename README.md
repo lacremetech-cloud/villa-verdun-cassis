@@ -1,7 +1,14 @@
-# Villa Jean Jaurès — Cassis
+# Villa Verdun — Cassis
 
-Site de présentation et brochure premium du bien, sur le modèle de
-[chaletfontromeu](https://github.com/lacremetech-cloud/chaletfontromeu).
+Site de présentation et brochure premium du bien, sur le modèle exact de la
+[Villa Jean Jaurès](https://github.com/lacremetech-cloud/Villa-jeanajures-Cassis)
+(elle-même calquée sur [chaletfontromeu](https://github.com/lacremetech-cloud/chaletfontromeu)).
+
+Villa contemporaine, 17 avenue de Verdun à Cassis. 135 m² habitables entièrement
+restructurés, plus de 600 m² de terrain paysagé, 4 chambres, 4 salles d'eau, 3 WC,
+studio indépendant de 16 m², piscine, vue mer et Cap Canaille, DPE B / GES A.
+**1 490 000 € FAI**
+(le prix figure dans la brochure, pas sur la landing, comme pour Jean Jaurès).
 
 ## Structure
 
@@ -11,19 +18,20 @@ styles.css               feuille de style (polices auto-hébergées incluses)
 main.js                  navigation, révélations, modale, galerie plein écran
 brochure/index.html      brochure A4 — 16 pages, autonome, imprimable en PDF
                          (feuilletage : la page pivote sur son bord gauche)
-assets/images/           15 photographies du bien
+assets/images/           26 photographies du bien (dossier Drive du 29/09/2026)
+assets/images/cassis/    5 vues de Cassis libres de droits
 assets/fonts/            Cormorant Garamond & Jost (OFL 1.1), 20 fichiers woff2
 assets/brand/            logo Prodigio (source, mot-symbole blanc, mot-symbole encre)
-direction-artistique/    archive : comparatif des trois directions proposées
 ```
 
 Site statique : aucun build, aucune dépendance. Déploiement direct sur Vercel.
 
 ## Direction artistique
 
-Direction « Calanque », retenue parmi trois propositions. La palette est prélevée
-sur les photographies du bien : le bleu `#5C7488` est celui des meubles de cuisine
-et des volets. Typographie Cormorant Garamond (titres) et Jost (textes).
+Direction « Calanque », reprise à l'identique de la Villa Jean Jaurès : même
+palette (bleu `#5C7488`, qui répond ici aux menuiseries noires et à la mer),
+mêmes typographies Cormorant Garamond (titres) et Jost (textes), mêmes gabarits
+de sections et de pages.
 
 Les polices sont servies depuis le dépôt — aucune requête vers Google Fonts,
 donc aucun transfert de données vers un tiers.
@@ -39,7 +47,7 @@ a désactivé les animations, ni sur connexion lente ou en mode données réduit
 Elle se met en pause dès que le hero sort du champ.
 
 Sur les écrans étroits (moins de 1200 px), où la carte de capture passe sous
-le texte, une photographie du bien s'intercale entre les deux : c'est
+le texte, une photographie du bien (la terrasse de l'étage) s'intercale entre les deux : c'est
 l'équivalent du lecteur vidéo mobile du site du chalet. Elle est visible sans
 défiler, et la carte apparaît juste en dessous. Bloc `.hero__shot` dans
 `index.html` : quand les vidéos du bien seront disponibles, remplacer le
@@ -66,9 +74,9 @@ l'auteur, soit des images propres au bien.
 
 | Élément | Emplacement |
 |---|---|
+| **Tunnel Systeme.io de la Villa Verdun** | `main.js`, constante `FORM_SCRIPT_URL` (vide pour l'instant) |
 | Pixel Meta | `index.html`, commentaire `TODO Meta Pixel` |
-| Coordonnées Prodigio | `brochure/index.html`, page 16 (WhatsApp déjà branché) |
-| Redirection du tunnel | Systeme.io, voir ci-dessous |
+| Taxe foncière | `brochure/index.html`, page 15 (« sur demande ») |
 | Mentions légales, confidentialité | pied de page, liens `#` |
 
 ## Contact WhatsApp
@@ -78,53 +86,78 @@ intérieure de la brochure, en bouton sur sa dernière page, et au pied du site.
 
 ## Formulaire de capture
 
-Le bouton « Recevoir la brochure » ouvre une modale contenant l'iframe du
-formulaire Prodigio :
+Le bouton « Recevoir la brochure » ouvre une modale dans laquelle est injecté le
+script d'un tunnel Systeme.io, exactement comme sur la Villa Jean Jaurès.
 
-```
-https://go.prodigio.fr/bien/villa-jean-jaures/interet
-```
+**Le tunnel de Jean Jaurès n'a pas été repris** : sa page de remerciement renvoie
+vers la brochure de Jean Jaurès, un prospect de la Villa Verdun aurait donc reçu
+le mauvais dossier. Tant que `FORM_SCRIPT_URL` est vide, la modale propose
+directement WhatsApp. Pour brancher le formulaire :
 
-Trois points à connaître :
+1. Dupliquer le tunnel Jean Jaurès dans Systeme.io.
+2. Renseigner l'URL du script dans `main.js` :
+   ```js
+   var FORM_SCRIPT_URL = 'https://lecambredaze.systeme.io/public/remote/page/XXXXXXXX.js';
+   ```
+3. Pointer la page de remerciement vers la brochure :
+   ```
+   https://<domaine-vercel-du-projet>/brochure/
+   ```
 
-1. **Il n'est chargé qu'à la première ouverture.** L'iframe porte
-   `loading="lazy"` et la modale est masquée au repos : aucun appel réseau
-   pour les visiteurs qui ne demandent pas la brochure. Vérifié.
-2. **Il annonce sa hauteur** par `postMessage`
-   (`prodigio:buyer-form:height`), appliquée dans `main.js` pour qu'il n'ait
-   ni barre de défilement interne ni blanc en dessous. Le `min-height` de
-   520 px tient la place en attendant, puis est relâché.
-3. **Le message est doublement vérifié** : la fenêtre émettrice doit être cet
-   iframe *et* son origine `https://go.prodigio.fr`. Le contrôle d'origine
-   s'ajoute à l'extrait fourni : sans lui, n'importe quelle fenêtre de la page
-   pourrait redimensionner le cadre.
+Le fonctionnement reste celui de Jean Jaurès : script injecté au premier clic,
+dans le conteneur `#brochureFormContainer` (il s'auto-positionne après
+lui-même), iframe masqué jusqu'à ce que Systeme.io renvoie sa hauteur, lien
+WhatsApp de secours au bout de dix secondes.
 
-Si le formulaire ne s'affiche pas au bout de dix secondes — réseau coupé,
-bloqueur, service indisponible — un lien WhatsApp de secours remplace la
-boîte vide. Vérifié aussi.
+## Diagnostics (DDT n° 259883 du 26/06/2026)
+
+Source de tous les chiffres techniques du site : dossier de diagnostic technique
+de General Services Contrôles, établi pour SAS JCAN IMMO, 17 avenue de Verdun.
+
+**DPE.** Classe **B**, 74 kWh/m²/an en énergie primaire ; GES classe **A**,
+2 kgCO₂/m²/an. Dépenses annuelles estimées entre 970 € et 1 360 € (prix moyens
+2021 à 2023). N° ADEME 2613E1732500I, valable jusqu'au 25/06/2036. Affiché dans
+les prestations de la landing et en page 13 de la brochure (gabarit DPE de la
+Villa Jean Jaurès).
+
+**Surfaces.** L'annonce initiale n'était pas conforme à l'attestation de surface ;
+**ce sont les chiffres du DDT qui sont retenus** :
+
+| | Annonce | Site (DDT) |
+|---|---|---|
+| Surface habitable | 145 m² | **135 m²** (135,16) |
+| Pièce de vie et cuisine | 50 m² | **52 m²** (51,96) |
+| Suite parentale | près de 20 m² | **20 m², salle d'eau comprise** (15,16 + 5,04) |
+| Chambre de l'étage | 15 m² | **12 m²** (12,33) |
+| Studio | 20 m² | **16 m²** (13,87 + salle d'eau/WC 2,20) |
+| Salles de bains | 4 | **4 salles d'eau** (3 dans la maison, 1 au studio) |
+| Garage, cave, balcon | — | 19,7 m², 13,3 m², 20 m² (hors surface habitable) |
+
+Pièce modulable (« bureau ») : 10,58 m². Chambre du rez-de-chaussée : 10,93 m².
+Le terrain n'est pas mesuré par le DDT : « plus de 600 m² » reste le chiffre
+de l'annonce.
+
+Amiante, termites et installation électrique : aucune anomalie relevée.
+
+**ERP.** Le DDT renvoie à un document joint. L'état des risques réf. 3739891 du
+26/06/2026, transmis par erreur pour la Villa Jean Jaurès et retiré de sa brochure,
+porte sur le 17 avenue de Verdun, parcelle CL 58 : c'est celui de ce bien.
 
 ## Points à trancher
 
-**L'ERP ne correspond pas au bien.** L'état des risques et pollutions transmis
-(réf. 3739891 du 26/06/2026) porte sur le **17 avenue de Verdun**, parcelle
-cadastrée **CL 58**. Le bien est la **Villa Jean Jaurès**, boulevard Jean Jaurès.
-Deux adresses différentes : la page de synthèse ERP a donc été **retirée de la
-brochure**. À réintégrer si vous confirmez que le document couvre bien ce bien,
-ou à remplacer par le bon ERP.
+**Distances.** Contrairement au boulevard Jean Jaurès, l'avenue de Verdun n'est
+pas présentée comme « tout à pied » : le site parle de port, marché et plages
+« à quelques minutes ».
 
-**Surface.** L'annonce publique 1894 L'Immobilier (réf. 15919) indique
-**160 m²** et 5 pièces, comme la première description transmise. Une seconde
-description indiquait 170 m². C'est le chiffre de l'annonce qui est retenu.
+**Studio et location saisonnière.** Le revenu locatif est mentionné « dans le
+respect de la réglementation locale » (déclaration en mairie à Cassis).
 
-| | Première version | Version retenue |
-|---|---|---|
-| Surface | 160 m² | **160 m²** (annonce 1894) |
-| Chambres | 4 suites parentales | **4 chambres avec salle d'eau, dont 1 suite de plain-pied** |
-| Stationnement | places privatives | **1 place** |
+## Photographies manquantes
 
-**DPE.** Les deux valeurs publiées sont certaines : 154 kWh/m²/an et
-4 kgCO₂/m²/an. Les lettres affichées (**C** et **A**) en découlent par les seuils
-réglementaires. À confirmer sur le diagnostic lui-même avant diffusion large.
+Aucune vue de la cuisine, du studio, de la pièce modulable, de la chambre de
+plain-pied, de la chambre de 15 m², du garage ni de la cave. Toutes les vues
+intérieures montrent la maison vide. Les pages concernées s'appuient sur les
+vues de la pièce de vie et des façades.
 
 ## Photographies de Cassis
 
@@ -144,13 +177,6 @@ le détail (œuvre, auteur, licence, page source).
 
 Les images ont été redimensionnées et recadrées : ces versions dérivées restent
 sous la même licence que les originaux.
-
-## Photographies manquantes
-
-Aucune vue de la cuisine d'été ni de la cave. Toutes les vues intérieures montrent
-la maison vide. La vue du village transmise (`cassis-cap-canaille.jpg`, 1066 px de
-large) était trop petite pour un usage pleine largeur : elle a été remplacée par
-les vues libres de droits ci-dessus.
 
 ## Logo
 

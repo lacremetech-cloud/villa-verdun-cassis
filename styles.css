@@ -180,6 +180,9 @@
   --accent-light:  #A9BCCB;
   --accent-deep:   #3A5163;
   --sand:          #C9B79E;
+  /* Terre cuite. Elle ne sert qu'au surtitre des deux moments de capture, et
+     nulle part ailleurs : une touche, pas une couleur de marque. */
+  --terre:         #A8553A;
   --border:        #E2DCD2;
   --border-strong: #C7BEB1;
   --dark:          #2E3D4A;
@@ -279,12 +282,124 @@ a { color: inherit; }
   transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
 }
 .btn:active { transform: translateY(1px); }
+/* Le sceau : un cadenas dont l'anse se soulève et pivote quand la carte
+   arrive à l'écran. « Ça se déverrouille », dit sans un mot de plus. */
+.brochure-sceau { display: inline-flex; align-items: center; gap: .5rem; }
+.brochure-sceau__cadenas { flex-shrink: 0; overflow: visible; }
+.brochure-sceau__anse {
+  transform-origin: 11.5px 8px;
+  transition: transform .9s cubic-bezier(.22,.61,.36,1);
+}
+.is-ouvert .brochure-sceau__anse { transform: translateY(-2.4px) rotate(26deg); }
+
+/* Un visiteur qui demande moins d'animations n'en reçoit aucune : le cadenas
+   est alors ouvert d'emblée, l'information passe quand même. */
+@media (prefers-reduced-motion: reduce) {
+  .brochure-sceau__anse { transition: none; transform: translateY(-2.4px) rotate(26deg); }
+}
+
 .btn--primary { background: var(--accent); color: #fff; }
 .btn--primary:hover { background: var(--accent-hover); }
 .btn--ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
 .btn--ghost:hover { border-color: var(--accent); color: var(--accent); }
 .btn--light { background: var(--bg); color: var(--dark-2); }
 .btn--light:hover { background: #fff; }
+/* ---------------------------------------------------------------------
+   LE REFLET DES CTA
+
+   POURQUOI. Les boutons étaient justes mais inertes : un aplat, un
+   changement de teinte au survol, rien qui attire l'œil pendant qu'on lit.
+   Sur téléphone, où il n'y a pas de survol, ils ne bougeaient jamais.
+
+   CE QUI EST FAIT. Un reflet étroit traverse le bouton toutes les cinq
+   secondes et demie, en un peu plus d'une seconde — une lueur qui passe sur
+   du verre, pas un clignotant. Le reste du temps, le bouton est immobile :
+   c'est la rareté du geste qui le rend élégant, et non sa fréquence.
+   S'y ajoutent un relief très léger (une ligne claire sur l'arête haute, une
+   ombre portée qui s'approfondit au survol) et une flèche qui avance de 4 px.
+
+   TROIS PRÉCAUTIONS.
+   · Le reflet passe DERRIÈRE le texte, jamais dessus : le libellé est
+     enveloppé dans un <span> placé au-dessus.
+   · L'animation ne tourne QUE lorsque le bouton est à l'écran — le script
+     s'en charge. Un reflet qui balaie en boucle un bouton hors du champ, sur
+     un téléphone, c'est de la batterie dépensée pour personne.
+   · Un visiteur qui demande moins d'animations n'en reçoit aucune.
+   --------------------------------------------------------------------- */
+.btn--eclat {
+  position: relative; overflow: hidden; isolation: isolate;
+  box-shadow: 0 6px 18px rgba(58,81,99,.20), inset 0 1px 0 rgba(255,255,255,.14);
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast),
+              transform var(--t-fast), box-shadow var(--t);
+}
+/* Le texte et la flèche au-dessus du reflet. */
+.btn--eclat > * { position: relative; z-index: 1; }
+.btn--eclat::after {
+  content: ""; position: absolute; z-index: 0;
+  top: -60%; bottom: -60%; left: 0; width: 46%;
+  /* UNE LUEUR, PAS UNE BARRE DE CHROME. À .72 au cœur et sur une bande
+     étroite, le reflet avait des bords nets et un éclat métallique — brillant
+     au mauvais sens du terme. Le cœur est redescendu et les épaulements
+     s'étalent : on voit une lumière passer sur du verre. */
+  background: linear-gradient(100deg,
+    rgba(255,255,255,0) 0%, rgba(255,255,255,.06) 22%, rgba(255,255,255,.22) 38%,
+    rgba(255,255,255,.50) 50%, rgba(255,255,255,.22) 62%, rgba(255,255,255,.06) 78%,
+    rgba(255,255,255,0) 100%);
+  transform: translate3d(-180%, 0, 0) skewX(-18deg);
+  pointer-events: none;
+  /* RÉGULIER, ET NON ACCÉLÉRÉ. Avec une courbe d'accélération, le reflet
+     traversait le bouton en 0,35 s puis rampait hors champ : on voyait un
+     clignement, pas une lumière qui glisse. À vitesse constante, il met près
+     d'une seconde à traverser — c'est là qu'il devient élégant. */
+  animation: btn-eclat 5.6s linear infinite;
+  animation-play-state: paused;   /* le script le lance quand le bouton est vu */
+}
+.btn--eclat.est-en-vue::after { animation-play-state: running; }
+@keyframes btn-eclat {
+  0%, 4% { transform: translate3d(-180%, 0, 0) skewX(-18deg); }
+  30%    { transform: translate3d(420%, 0, 0) skewX(-18deg); }
+  100%   { transform: translate3d(420%, 0, 0) skewX(-18deg); }
+}
+/* Sur fond clair, un reflet blanc ne se verrait pas : c'est le bleu de la
+   charte qui joue le rôle du verre. */
+.btn--light.btn--eclat {
+  box-shadow: 0 6px 18px rgba(20,31,39,.16), inset 0 1px 0 rgba(255,255,255,.60);
+}
+.btn--light.btn--eclat::after {
+  background: linear-gradient(100deg,
+    rgba(92,116,136,0) 0%, rgba(92,116,136,.05) 22%, rgba(92,116,136,.13) 38%,
+    rgba(92,116,136,.28) 50%, rgba(92,116,136,.13) 62%, rgba(92,116,136,.05) 78%,
+    rgba(92,116,136,0) 100%);
+}
+.btn--eclat:hover { transform: translateY(-1px); }
+.btn--primary.btn--eclat:hover {
+  box-shadow: 0 12px 28px rgba(58,81,99,.34), inset 0 1px 0 rgba(255,255,255,.20);
+}
+.btn--light.btn--eclat:hover {
+  box-shadow: 0 12px 28px rgba(20,31,39,.24), inset 0 1px 0 rgba(255,255,255,.70);
+}
+/* Au survol, le reflet revient plus souvent : le bouton répond. */
+.btn--eclat:hover::after { animation-duration: 2.2s; }
+/* L'appui reste un appui, même survolé : cette règle vient APRÈS celle du
+   survol, sans quoi le bouton s'enfoncerait sans bouger. */
+.btn--eclat:active { transform: translateY(1px); }
+
+.btn__fleche { flex: 0 0 auto; transition: transform var(--t-fast); }
+/* LE LIBELLÉ RESTE SUR UNE LIGNE. La flèche prend 25 px de large, et sur un
+   écran de 390 px « Recevoir la brochure » basculait sur deux lignes. On rend
+   ces 25 px en resserrant le rembourrage là où il est le plus large. */
+.btn--eclat .btn__texte { white-space: nowrap; }
+@media (max-width: 480px) {
+  .btn--lg.btn--eclat { padding-left: 20px; padding-right: 20px; }
+}
+.btn--eclat:hover .btn__fleche { transform: translateX(4px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn--eclat::after { animation: none; opacity: 0; }
+  .btn--eclat:hover, .btn--eclat:active { transform: none; }
+  .btn__fleche, .btn--eclat:hover .btn__fleche { transition: none; transform: none; }
+}
+
 .btn--sm { padding: 12px 22px; font-size: 11.5px; }
 .btn--lg { padding: 20px 42px; font-size: 13px; }
 .btn--block { width: 100%; }
@@ -500,7 +615,152 @@ a { color: inherit; }
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--accent-light); box-shadow: 0 0 8px var(--accent-light);
 }
+/* Le tap ne doit pas réveiller les contrôles natifs d'iOS par-dessus les
+   nôtres : la vidéo elle-même ne reçoit aucun pointeur. */
+.hero__shot video { pointer-events: none; }
+.hero__shot-cmd {
+  position: absolute; right: 12px; bottom: 12px;
+  display: flex; gap: 8px; z-index: 2;
+}
+.hero__shot-btn {
+  width: 40px; height: 40px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; cursor: pointer;
+  background: rgba(20,31,39,.62); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.18); color: #fff;
+  transition: background var(--t), border-color var(--t), transform var(--t);
+}
+.hero__shot-btn:hover, .hero__shot-btn:active {
+  background: rgba(20,31,39,.92); border-color: var(--accent-light); transform: scale(1.05);
+}
+.hero__shot-btn .i-son { display: none; }
+.hero__shot-btn.is-audible .i-muet { display: none; }
+.hero__shot-btn.is-audible .i-son { display: block; }
 @media (max-width: 1200px) { .hero__shot { display: block; } }
+
+/* --- La surface entière ouvre le plein écran ------------------------------
+   Le <video> ne reçoit aucun pointeur (contrôles d'iOS) : c'est ce bouton,
+   étendu sur toute la vignette, qui reçoit le tap. Il reste discret — un
+   dégradé du bas et un libellé — pour ne pas masquer l'image, et il s'assombrit
+   au contact. */
+.hero__shot-ouvrir {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; align-items: flex-end; gap: 12px;
+  padding: 1.1rem 1.15rem;
+  border: 0; border-radius: var(--radius); cursor: pointer;
+  background: linear-gradient(to top, rgba(20,31,39,.80) 0%, rgba(20,31,39,.34) 38%, rgba(20,31,39,0) 72%);
+  color: #fff; text-align: left; font: inherit; text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--t);
+}
+.hero__shot-ouvrir:hover, .hero__shot-ouvrir:active {
+  background: linear-gradient(to top, rgba(20,31,39,.88) 0%, rgba(20,31,39,.48) 46%, rgba(20,31,39,.12) 86%);
+}
+.hero__shot-ouvrir:focus-visible { outline: 2px solid var(--accent-light); outline-offset: 3px; }
+.hero__shot-ouvrir__rond {
+  flex: 0 0 auto;
+  width: 46px; height: 46px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.17); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.34); color: #fff;
+  transition: transform var(--t), background var(--t);
+}
+.hero__shot-ouvrir:hover .hero__shot-ouvrir__rond,
+.hero__shot-ouvrir:active .hero__shot-ouvrir__rond {
+  transform: scale(1.07); background: rgba(255,255,255,.28);
+}
+.hero__shot-ouvrir__texte {
+  display: flex; flex-direction: column; line-height: 1.25;
+  font-size: 14.5px; font-weight: 600; letter-spacing: .01em;
+  text-shadow: 0 1px 10px rgba(20,31,39,.55);
+}
+.hero__shot-ouvrir__fin {
+  font-size: 11px; font-weight: 500; letter-spacing: .13em;
+  text-transform: uppercase; opacity: .82; margin-top: 3px;
+}
+/* Le bouton du son reste au-dessus de la surface cliquable : on peut mettre le
+   son sans quitter la page. */
+.hero__shot-cmd { z-index: 3; }
+
+/* La lecture automatique a été REFUSÉE (mode économie d'énergie, navigateur
+   intégré de Facebook ou d'Instagram). Sans ce repère, il ne restait qu'une
+   affiche immobile et rien ne disait quoi faire. */
+.hero__shot.is-arretee .hero__shot-ouvrir {
+  background: linear-gradient(to top, rgba(20,31,39,.84) 0%, rgba(20,31,39,.52) 50%, rgba(20,31,39,.30) 100%);
+  align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+  text-align: center;
+}
+.hero__shot.is-arretee .hero__shot-ouvrir__rond { width: 64px; height: 64px; }
+.hero__shot.is-arretee .hero__shot-ouvrir__texte { align-items: center; }
+
+/* --- Pilule « Voir la visite », sur grand écran --------------------------- */
+.hero__visite {
+  display: none;
+  align-items: center; gap: 11px;
+  margin: 1.6rem 0 0; padding: 11px 20px 11px 13px;
+  border-radius: 100px; cursor: pointer;
+  background: rgba(255,255,255,.10); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.26);
+  color: #fff; font: inherit; font-size: 14.5px; font-weight: 600;
+  text-decoration: none;
+  transition: background var(--t), border-color var(--t), transform var(--t);
+}
+.hero__visite:hover {
+  background: rgba(255,255,255,.17); border-color: var(--accent-light);
+  transform: translateY(-1px);
+}
+.hero__visite:focus-visible { outline: 2px solid var(--accent-light); outline-offset: 3px; }
+.hero__visite__rond {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent); color: #fff; flex: 0 0 auto;
+}
+.hero__visite__duree {
+  font-size: 10.5px; font-weight: 500; letter-spacing: .16em;
+  text-transform: uppercase; opacity: .72;
+  padding-left: 11px; margin-left: 2px;
+  border-left: 1px solid rgba(255,255,255,.26);
+}
+/* Elle ne sert qu'au-dessus de 1200 px : en dessous, la vignette elle-même est
+   le bouton, et deux portes pour la même pièce se contredisent. */
+@media (min-width: 1201px) { .hero__visite { display: inline-flex; } }
+
+/* --- Couche « grand écran » de la visite ---------------------------------- */
+.visite {
+  position: fixed; inset: 0; z-index: 400;
+  display: flex; align-items: center; justify-content: center;
+  background: #0b1216;
+}
+.visite[hidden] { display: none; }
+.visite__scene { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+/* La vidéo déplacée ici reprend des dimensions de LECTEUR, et non celles de la
+   vignette : elle doit tenir l'écran entier sans se faire rogner. Le
+   `!important` surcharge la règle de la vignette, qui impose un 3/2 recadré. */
+.visite__scene video {
+  width: 100% !important; height: 100% !important;
+  max-width: 100vw; max-height: 100vh;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+  border-radius: 0 !important; box-shadow: none !important;
+  background: #0b1216;
+  pointer-events: auto !important;   /* ici, les contrôles natifs servent */
+}
+.visite__fermer {
+  position: absolute; top: max(14px, env(safe-area-inset-top)); right: 14px;
+  width: 46px; height: 46px; padding: 0; border-radius: 50%; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(11,18,22,.62); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.22); color: #fff;
+  transition: background var(--t), border-color var(--t);
+}
+.visite__fermer:hover { background: rgba(11,18,22,.92); border-color: var(--accent-light); }
+/* ELLE RESTE VISIBLE, MÊME EN VRAI PLEIN ÉCRAN. On l'avait d'abord masquée,
+   en supposant que le navigateur dessinait sa propre sortie : c'est faux sur
+   Chrome pour Android, qui n'affiche rien et attend le geste « retour ».
+   Masquer la nôtre enfermait le visiteur dans la vidéo. */
+.visite:fullscreen .visite__fermer,
+.visite:-webkit-full-screen .visite__fermer { z-index: 2; }
+body.visite-ouverte { overflow: hidden; }
 
 /* --- carte de capture --- */
 .hero__form-wrap { position: relative; }
@@ -556,8 +816,25 @@ a { color: inherit; }
   .hero__grid { gap: 1.5rem; }
   .hero__pill { font-size: .6rem; padding: .45rem .85rem; letter-spacing: .15em; margin-bottom: 1.1rem; }
   .hero__kicker { margin-bottom: .8rem; padding-bottom: .6rem; }
-  .hero__title { font-size: 2.4rem; line-height: .98; margin-bottom: .85rem; }
-  .hero__subtitle { font-size: .95rem; }
+  /* Centré et plus grand, comme sur le Cambre d'Aze : sur un téléphone, un
+     titre aligné à gauche sur trois lignes courtes laisse une colonne vide à
+     droite, et le hero perd sa tenue. Le texte du hero est centré ; la carte,
+     elle, reste alignée à gauche — on lit une promesse centrée, on remplit un
+     formulaire aligné. */
+  .hero__left { text-align: center; }
+  .hero__pill, .hero__kicker { margin-left: auto; margin-right: auto; }
+  .hero__kicker { display: table; }
+  /* Taille FLUIDE, et non une valeur fixe.
+     Le titre doit tenir sur DEUX lignes : « Villa vue mer » puis « à Cassis ».
+     Une troisième ligne casse la tenue du hero, et c'est elle qui limite, pas
+     le débordement. Mesuré ligne par ligne sur l'étendue réelle des glyphes,
+     le plafond va de 38,5 px (320) à 53,5 px (430) — d'où cette pente, qui
+     s'y tient avec un pixel de marge.
+     « vue mer » a laissé de la place : l'ancien titre plafonnait 7 px plus
+     bas à cause du seul mot « contemporaine ». */
+  .hero__title { font-size: clamp(2.3rem, calc(13.6vw - 6px), 3.3rem); line-height: .96; margin-bottom: .9rem; }
+  .hero__subtitle { font-size: .95rem; margin-left: auto; margin-right: auto; max-width: 34ch; }
+  .hero__form-card { text-align: left; }
   .hero__features { display: none; }   /* déjà résumé dans le sous-titre */
   .hero__form-card { padding: 1.75rem 1.4rem; }
   .hero__scroll { display: none; }
@@ -583,7 +860,8 @@ a { color: inherit; }
 .tile__icon svg { width: 22px; height: 22px; }
 .tile--dark .tile__icon { color: var(--accent-light); }
 /* Apparition en cascade : les tuiles montent l'une après l'autre quand la
-   section entre dans le champ. */
+   section entre dans le champ. Sans elle, huit tuiles claires arrivaient
+   d'un bloc et se lisaient comme un mur. */
 .bento .tile { opacity: 0; transform: translateY(20px); transition: opacity .55s ease-out, transform .55s cubic-bezier(.22,.61,.36,1); }
 .bento.is-in .tile { opacity: 1; transform: none; }
 .bento.is-in .tile:nth-child(1)  { transition-delay: .02s }
@@ -601,14 +879,15 @@ a { color: inherit; }
   .bento .tile { opacity: 1; transform: none; transition: none; }
 }
 
+/* Respirations photographiques réservées aux écrans étroits : au-dessus, la
+   grille en quatre colonnes tient déjà toute seule. */
+.tile--respiration { display: none; }
+
 .tile--wide { grid-column: span 2; }
 .tile--tall { grid-row: span 2; }
 .tile--full { grid-column: span 4; min-height: 0; }
 .tile--full img { min-height: 0; height: auto; aspect-ratio: 4 / 1.05; }
 .tile--photo { padding: 0; overflow: hidden; min-height: 240px; }
-/* Respirations photographiques réservées aux écrans étroits : au-dessus,
-   la grille en quatre colonnes tient déjà toute seule. */
-.tile--respiration { display: none; }
 /* La photo haute se cale sur les deux rangées de tuiles. Sans position
    absolue, elle prend la hauteur naturelle de l'image (390 px pour un
    1600x1066) et étire les tuiles voisines, ce qui rouvre du vide. */
@@ -643,8 +922,8 @@ a { color: inherit; }
   .tile--respiration img { width: 100%; height: auto; min-height: 0; aspect-ratio: 3 / 2; }
 }
 @media (max-width: 580px) {
-  /* Deux colonnes maintenues : en colonne unique, les huit tuiles claires
-     formaient un long mur blanc au défilement. */
+  /* DEUX colonnes maintenues, et non une seule : empilées, les huit tuiles
+     claires formaient un long mur blanc au défilement. C'était le reproche. */
   .bento__grid { gap: 10px; }
   .tile { padding: 16px 16px 14px; min-height: 124px; }
   .tile__icon svg { width: 19px; height: 19px; }
@@ -834,6 +1113,16 @@ a { color: inherit; }
   border-radius: var(--radius); box-shadow: var(--shadow-lg);
   max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
 }
+/* `vh` sur iOS designe le GRAND viewport, celui qu'on a quand les barres du
+   navigateur sont escamotees. Barres affichees — c'est-a-dire a l'ouverture,
+   c'est-a-dire toujours ici — le panneau depassait donc sous la barre d'outils,
+   et le bouton « Continuer » se retrouvait coupe en deux.
+   `svh` designe le PETIT viewport, barres comprises : le panneau tient alors
+   quoi qu'il arrive. Declare apres, il ne sert qu'aux navigateurs qui le
+   comprennent ; les autres gardent `vh`. */
+@supports (height: 100svh) {
+  .modal__panel { margin: 6svh auto; max-height: 88svh; }
+}
 .modal__close {
   position: absolute; top: 12px; right: 12px; width: 40px; height: 40px;
   background: none; border: 0; color: var(--muted-fg); font-size: 26px; line-height: 1;
@@ -852,6 +1141,41 @@ a { color: inherit; }
   .modal__head { padding: 34px 24px 0; }
   .modal__form { padding: 22px 24px 28px; }
 }
+
+/* Ecrans courts : la hauteur manque, pas la largeur.
+   
+   Ce qu'on rend au formulaire vient de l'EN-TETE, et c'est deliberé : il
+   repete l'argumentaire a quelqu'un qui vient de cliquer « recevez la
+   brochure ». La personne a deja decide ; ce qu'elle attend, c'est la
+   premiere question et le bouton pour y repondre. Sur un telephone, cet
+   en-tete occupait plus du tiers de l'ecran. */
+@media (max-height: 760px) {
+  @supports (height: 100svh) {
+    .modal__panel { margin: 3svh auto; max-height: 94svh; }
+  }
+  .modal__head { padding: 22px 22px 0; }
+  .modal__head .eyebrow { margin-bottom: 10px; }
+  .modal__title { font-size: clamp(19px, 4.6vw, 23px); margin-bottom: 8px; }
+  .modal__lede { font-size: 13.5px; line-height: 1.45; }
+  .modal__form { padding: 14px 22px 18px; min-height: 160px; }
+  .modal__close { top: 4px; right: 4px; width: 36px; height: 36px; }
+}
+
+/* Tres courts : le chapeau disparait. Il porte « acces immediat, sans
+   engagement » — un argument, pas une consigne : la personne le lira sur la
+   page, pas dans la boite ou elle remplit deja le formulaire. Mieux vaut cet
+   argument en moins qu'un bouton qu'il faut aller chercher. */
+@media (max-height: 660px) {
+  @supports (height: 100svh) {
+    .modal__panel { margin: 2svh auto; max-height: 96svh; }
+  }
+  .modal__lede { display: none; }
+  .modal__head { padding: 18px 22px 0; }
+  .modal__head .eyebrow { margin-bottom: 8px; }
+  .modal__title { font-size: clamp(18px, 4.4vw, 22px); margin-bottom: 0; }
+  .modal__form { padding: 12px 22px 16px; }
+}
+
 /* Le formulaire est servi par Prodigio dans un iframe : il apporte ses
    propres styles. On se contente de l'empêcher de déborder de la modale,
    sa hauteur étant posée par le script à la réception de son message. */
@@ -861,7 +1185,67 @@ a { color: inherit; }
    capacité de se mesurer. L'attente est posée par-dessus. */
 #prodigio-form:not(.is-ready) { visibility: hidden; }
 
-.modal__spinner { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--soft-fg); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+/* Cadre REPLIE : le repli WhatsApp occupe le flux a sa place, mais le cadre
+   garde sa largeur et sa hauteur reelles, hors du flux. C'est ce qui lui
+   permet de continuer a annoncer sa hauteur — et donc de reprendre la main si
+   le formulaire finit par arriver. Mis en display:none, il ne mesurait plus
+   rien et le repli etait definitif, alors qu'il se veut reversible. */
+#prodigio-form.is-replie {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ---------------------------------------------------------------------
+   Esquisse du formulaire
+
+   Un mot centre dans une boite vide de 520 px de haut fait paraitre
+   l'attente plus longue qu'elle n'est : l'oeil n'a rien a quoi se
+   raccrocher. L'esquisse montre tout de suite la FORME de ce qui arrive —
+   un titre, quatre choix, un bouton — et le cadre se pose dessus quand il
+   est pret. Elle disparait avec le mot d'attente, que main.js retire des
+   que le formulaire annonce sa hauteur.
+   --------------------------------------------------------------------- */
+.modal__esquisse {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 28px 24px;
+  pointer-events: none;
+}
+.modal__esquisse > * {
+  display: block; border-radius: 10px;
+  background: linear-gradient(
+    100deg,
+    rgba(20,31,39,.045) 30%,
+    rgba(20,31,39,.085) 50%,
+    rgba(20,31,39,.045) 70%
+  );
+  background-size: 300% 100%;
+  animation: esquisse 1.6s ease-in-out infinite;
+}
+.modal__esquisse-ligne--titre { height: 22px; width: 72%; margin-bottom: 10px; }
+.modal__esquisse-choix { height: 52px; }
+.modal__esquisse-bouton { height: 52px; margin-top: 6px; border-radius: 10px; }
+
+@keyframes esquisse {
+  0%   { background-position: 150% 0; }
+  100% { background-position: -50% 0; }
+}
+
+/* Mouvement reduit : on garde la forme, on retire l'animation. */
+@media (prefers-reduced-motion: reduce) {
+  .modal__esquisse > * { animation: none; }
+}
+
+.modal__spinner {
+  position: absolute; left: 0; right: 0; bottom: 18px;
+  margin: 0; text-align: center;
+  color: var(--soft-fg); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+}
 
 /* =====================================================================
    STICKY CTA
@@ -916,3 +1300,25 @@ a { color: inherit; }
 
 /* ---------- Ancres : compenser la navigation fixe ---------- */
 #bien, #galerie, #niveaux, #lieu, #process { scroll-margin-top: 88px; }
+
+/* =====================================================================
+   LES DEUX MOMENTS DE CAPTURE — une touche, pas une refonte
+   La carte du hero et la modale sont les deux seuls endroits ou l'on demande
+   quelque chose au visiteur. Deux retouches, et rien d'autre : le surtitre
+   passe en terre cuite, et le gras souligne ce qui decide d'un clic — ce
+   qu'on recoit, en combien de temps. Le bleu-gris, les coches, le bouton et
+   le liseré de la carte ne bougent pas.
+
+   Ce bloc est en FIN de feuille a dessein : les regles de la carte vivent
+   plus bas que les utilitaires, et une declaration posee plus haut perdrait
+   silencieusement.
+
+   Jost s'arrete a 500 : ce gras est un fichier de police deja charge, jamais
+   un gras synthetique du navigateur, et aucune requete n'est ajoutee. Les
+   titres restent en Cormorant sans gras — a cette taille, 500 et 600 ne se
+   distinguent pas, un gras invisible n'est pas un gras.
+   ===================================================================== */
+.eyebrow--terre { color: var(--terre); }
+.hero__form-lede strong,
+.hero__form-perks strong,
+.modal__lede strong { font-weight: 500; color: var(--fg); }
