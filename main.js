@@ -262,80 +262,240 @@
   var scrollY = 0;
   var lastFocused = null;
 
-  /* ---------- Visite vidéo dans le flux (écrans étroits) ----------
-     iOS refuse parfois la lecture automatique au premier chargement : on la
-     relance au premier contact. Hors écran, on met en pause, par égard pour
-     la batterie. Les deux commandes sont les nôtres, celles du système
-     restant neutralisées par pointer-events: none. */
+  /* ---------- LA VISITE VIDÉO : lecture automatique, et plein écran en un geste
+     ----------------------------------------------------------------------
+     TROIS DÉFAUTS CONSTATÉS, MESURÉS SUR LES FICHIERS RÉELS.
+
+     1. ON NE TROUVAIT PAS LE PLEIN ÉCRAN. La vignette fait 350 x 233 px sur
+        un téléphone, et la commande était une icône de 18 px dans son coin.
+        Le geste naturel — toucher la vidéo — ne faisait rien, parce que le
+        <video> est en pointer-events: none (sans quoi les contrôles d'iOS
+        s'ouvrent par-dessus les nôtres). Désormais la surface entière ouvre
+        le plein écran, avec le son, et elle le dit.
+
+     2. SUR GRAND ÉCRAN, IL N'Y AVAIT AUCUNE PORTE. Au-dessus de 1200 px la
+        vignette est masquée et c'est la vidéo de couverture qui joue :
+        décorative, sans piste audio, sans commande. On ne pouvait donc pas
+        regarder la visite depuis un ordinateur. La pilule « Voir la visite »
+        ouvre le même lecteur.
+
+     3. LA LECTURE N'ÉTAIT PAS FLUIDE SUR ORDINATEUR, et pour une raison
+        invisible : la vignette masquée se téléchargeait et se décodait quand
+        même. 10,2 Mo de vidéo et deux décodages simultanés à 30 images par
+        seconde, dont un pour une image que personne ne voyait. La lecture
+        n'est plus lancée que là où la vignette est visible.
+
+     CE QUI N'EST PAS POSSIBLE, ET QU'IL FAUT DIRE : ouvrir le plein écran
+     TOUT SEUL au chargement. Tous les navigateurs l'exigent déclenché par un
+     geste. Le plus direct qu'on puisse faire, et qui est fait ici, c'est un
+     seul contact n'importe où sur la vidéo. */
   var visite = document.querySelector('.hero__shot video');
+  var figure = document.querySelector('.hero__shot');
+  var couche = document.getElementById('visite');
+  var scene  = document.getElementById('visiteScene');
+  var bSon   = document.querySelector('.js-son');
+
   if (visite) {
-    var lancer = function () {
-      /* Inutile de redemander si elle joue deja : un play() sur une video en
-         cours remet le compteur de tentatives a zero pour rien. */
+
+    /* Vrai pendant que la couche « grand écran » est ouverte : la mise en
+       pause hors champ ne doit pas s'appliquer à une vidéo qu'on regarde. */
+    var estOuverte = false;
+
+    /* ---- Lecture en vignette, là où la vignette existe ---- */
+
+    /* Le même seuil que la feuille de style. Les deux doivent rester d'accord :
+       lancer la lecture d'un élément masqué, c'est le défaut nº 3. */
+    var enVignette = window.matchMedia('(max-width: 1200px)');
+
+    function marquerArretee(oui) {
+      if (figure) figure.classList.toggle('is-arretee', oui);
+    }
+
+    function lancer() {
+      /* Un play() sur une vidéo qui joue déjà ne sert à rien. */
       if (!visite.paused) return;
+      if (!enVignette.matches) return;
+      if (visite.preload !== 'auto') visite.preload = 'auto';
       var p = visite.play();
-      if (p && p.catch) p.catch(function () {});
-    };
-    lancer();
+      if (p && p.catch) p.catch(function () { marquerArretee(true); });
+    }
+
+    visite.addEventListener('playing', function () { marquerArretee(false); });
 
     /*
      * ON RELANCE QUAND LES IMAGES ARRIVENT, et pas seulement au chargement.
-     *
-     * LE DEFAUT : `preload="metadata"` ne telecharge que l'entete. A la
-     * premiere visite, le fichier n'est pas en cache et le seul play() partait
-     * alors qu'aucune image n'etait disponible. S'il echouait, RIEN ne
-     * reessayait : le visiteur restait sur l'affiche. Au rechargement, la
-     * video etait en cache, les images etaient la tout de suite, et elle
-     * partait — d'ou « il faut rafraichir pour qu'elle se lance ».
-     *
-     * Ces evenements se declenchent exactement au moment ou la lecture
-     * devient possible. Aucun cout quand elle a deja demarre : `lancer` sort
-     * immediatement.
+     * À la première visite le fichier n'est pas en cache : le premier play()
+     * partait alors qu'aucune image n'était disponible, et s'il échouait, RIEN
+     * ne réessayait. Au rechargement la vidéo était en cache et elle partait —
+     * d'où « il faut rafraîchir pour qu'elle se lance ».
      */
     ['loadeddata', 'canplay', 'canplaythrough'].forEach(function (e) {
       visite.addEventListener(e, lancer);
     });
 
-    /* Revenir sur l'onglet, ou sortir du multitache : iOS suspend la lecture
+    /* Revenir sur l'onglet, ou sortir du multitâche : iOS suspend la lecture
        et ne la reprend pas toujours seul. */
     document.addEventListener('visibilitychange', function () {
       if (!document.hidden) lancer();
     });
 
-    /* Dernier recours, le geste du visiteur. `pointerdown` en plus de
-       `touchstart` : le premier couvre aussi la souris et le stylet. */
+    /* Dernier recours, le geste du visiteur. */
     ['touchstart', 'pointerdown'].forEach(function (e) {
       document.addEventListener(e, lancer, { once: true, passive: true });
     });
 
+    /* Le refus de lecture automatique est SILENCIEUX : mode économie d'énergie
+       sur iPhone, navigateur intégré de Facebook ou d'Instagram, réglage
+       « ne jamais lire » de Safari. Sans ce contrôle, il ne restait qu'une
+       affiche immobile et rien ne disait quoi faire. */
+    setTimeout(function () {
+      if (enVignette.matches && visite.paused) marquerArretee(true);
+    }, 1800);
+
+    /* Hors champ, on met en pause : la batterie d'abord. */
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (entrees) {
         for (var i = 0; i < entrees.length; i++) {
           if (entrees[i].isIntersecting) lancer();
-          else visite.pause();
+          else if (!estOuverte) visite.pause();
         }
       }, { threshold: 0.25 }).observe(visite);
     }
 
-    var bSon = document.querySelector('.js-son');
+    /* Le navigateur qu'on redimensionne, ou le téléphone qu'on tourne. */
+    var surChangement = function () {
+      if (enVignette.matches) lancer();
+      else { visite.pause(); marquerArretee(false); }
+    };
+    if (enVignette.addEventListener) enVignette.addEventListener('change', surChangement);
+    else if (enVignette.addListener) enVignette.addListener(surChangement);
+    lancer();
+
+    /* ---- Le son, sans quitter la page ---- */
     if (bSon) {
-      bSon.addEventListener('click', function () {
+      bSon.addEventListener('click', function (e) {
+        e.stopPropagation();          /* sinon on ouvre aussi le plein écran */
         visite.muted = !visite.muted;
-        bSon.classList.toggle('is-audible', !visite.muted);
-        bSon.setAttribute('aria-label', visite.muted ? 'Activer le son' : 'Couper le son');
+        majBoutonSon();
         if (!visite.muted) lancer();
       });
     }
 
-    var bPlein = document.querySelector('.js-plein-ecran');
-    if (bPlein) {
-      bPlein.addEventListener('click', function () {
-        /* Safari iOS n'implémente le plein écran que sur l'élément vidéo. */
-        if (typeof visite.webkitEnterFullscreen === 'function') visite.webkitEnterFullscreen();
-        else if (typeof visite.requestFullscreen === 'function') visite.requestFullscreen().catch(function () {});
-        else if (typeof visite.webkitRequestFullscreen === 'function') visite.webkitRequestFullscreen();
-      });
+    function majBoutonSon() {
+      if (!bSon) return;
+      bSon.classList.toggle('is-audible', !visite.muted);
+      bSon.setAttribute('aria-label', visite.muted ? 'Activer le son' : 'Couper le son');
     }
+
+    /* ---- Le plein écran, en un seul contact ---- */
+
+    function pleinEcranPossible() {
+      return !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+    }
+
+    function demanderPleinEcran(el) {
+      var f = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+      if (!f) return;
+      try {
+        var r = f.call(el);
+        /* Un refus n'est pas un échec : la couche occupe déjà tout l'écran. */
+        if (r && r.catch) r.catch(function () {});
+      } catch (err) { /* idem */ }
+    }
+
+    function ouvrirVisite(ev) {
+      /* Les portes sont des liens vers le fichier, pour que la visite reste
+         accessible sans JavaScript. Ici, on fait mieux que le lecteur brut. */
+      if (ev && ev.preventDefault) ev.preventDefault();
+      visite.muted = false;
+      majBoutonSon();
+
+      /*
+       * SAFARI SUR IPHONE n'a de plein écran que sur l'élément vidéo lui-même
+       * (`webkitEnterFullscreen`), jamais sur un conteneur. Il faut l'appeler
+       * DANS le geste, sans attendre une promesse : différer, c'est perdre
+       * l'autorisation que le contact venait de donner.
+       */
+      if (!pleinEcranPossible() && typeof visite.webkitEnterFullscreen === 'function') {
+        visite.setAttribute('controls', '');
+        var p = visite.play();
+        if (p && p.catch) p.catch(function () {});
+        if (visite.readyState >= 1) {
+          try { visite.webkitEnterFullscreen(); return; } catch (err) { /* on continue */ }
+        }
+        /* Métadonnées pas encore là : on tente dès qu'elles arrivent. Le
+           navigateur peut refuser, et la couche ci-dessous prend le relais. */
+        visite.addEventListener('loadedmetadata', function une() {
+          visite.removeEventListener('loadedmetadata', une);
+          try { visite.webkitEnterFullscreen(); } catch (err) { ouvrirCouche(); }
+        });
+        return;
+      }
+
+      ouvrirCouche();
+    }
+
+    function ouvrirCouche() {
+      if (!couche || !scene) return;
+      estOuverte = true;
+      visite.setAttribute('controls', '');
+      /* On DÉPLACE la vidéo du flux : elle est déjà en mémoire tampon. Un
+         second élément aurait retéléchargé le teaser, et une vidéo qui
+         repart de zéro n'est pas « direct en grand écran ». */
+      scene.appendChild(visite);
+      couche.hidden = false;
+      document.body.classList.add('visite-ouverte');
+      demanderPleinEcran(couche);
+      var p = visite.play();
+      if (p && p.catch) p.catch(function () {});
+    }
+
+    function fermerVisite() {
+      if (!estOuverte) return;
+      estOuverte = false;
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        var x = document.exitFullscreen || document.webkitExitFullscreen;
+        if (x) { try { x.call(document); } catch (err) {} }
+      }
+      if (couche) couche.hidden = true;
+      document.body.classList.remove('visite-ouverte');
+      visite.removeAttribute('controls');
+      visite.muted = true;
+      majBoutonSon();
+      /* Remise à sa place, devant la légende. */
+      if (figure) figure.insertBefore(visite, figure.firstChild);
+      lancer();
+    }
+
+    var portes = document.querySelectorAll('.js-visite');
+    for (var i = 0; i < portes.length; i++) {
+      portes[i].addEventListener('click', ouvrirVisite);
+    }
+
+    var bFermer = document.getElementById('visiteFermer');
+    if (bFermer) bFermer.addEventListener('click', fermerVisite);
+
+    /* Sortir du plein écran par la croix du navigateur ferme aussi la couche :
+       rester sur une vidéo géante au milieu de la page serait incompréhensible. */
+    ['fullscreenchange', 'webkitfullscreenchange'].forEach(function (e) {
+      document.addEventListener(e, function () {
+        if (estOuverte && !document.fullscreenElement && !document.webkitFullscreenElement) {
+          fermerVisite();
+        }
+      });
+    });
+
+    /* iPhone : la sortie du lecteur natif remet la vidéo en vignette muette. */
+    visite.addEventListener('webkitendfullscreen', function () {
+      visite.removeAttribute('controls');
+      visite.muted = true;
+      majBoutonSon();
+      lancer();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') fermerVisite();
+    });
   }
 
   /* ---------- Formulaire Prodigio ----------
