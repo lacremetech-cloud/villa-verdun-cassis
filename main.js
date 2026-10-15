@@ -498,6 +498,27 @@
     });
   }
 
+  /* ---------- Le reflet des CTA ne tourne qu'à l'écran ----------
+     Une animation en boucle continue de consommer hors du champ. Sur un
+     téléphone, trois boutons qui scintillent pour personne, c'est de la
+     batterie dépensée pour rien. La feuille de style les met en pause par
+     défaut ; ils ne repartent que lorsqu'ils sont visibles. */
+  var eclats = document.querySelectorAll('.btn--eclat');
+  if (eclats.length) {
+    if ('IntersectionObserver' in window) {
+      var oEclat = new IntersectionObserver(function (entrees) {
+        for (var e = 0; e < entrees.length; e++) {
+          entrees[e].target.classList.toggle('est-en-vue', entrees[e].isIntersecting);
+        }
+      }, { threshold: 0 });
+      for (var ec = 0; ec < eclats.length; ec++) oEclat.observe(eclats[ec]);
+    } else {
+      /* Sans observateur, on anime : mieux vaut un reflet de trop qu'un
+         bouton qui ne bouge jamais. */
+      for (var ec2 = 0; ec2 < eclats.length; ec2++) eclats[ec2].classList.add('est-en-vue');
+    }
+  }
+
   /* ---------- Formulaire Prodigio ----------
      L'iframe est écrit directement dans la modale, en loading="lazy" : il
      n'est chargé qu'à la première ouverture. Il annonce sa hauteur par

@@ -260,8 +260,11 @@
           </li>
         </ul>
 
-        <button class="btn btn--primary btn--lg btn--block js-open-brochure" type="button">
-          Recevoir la brochure
+        <!-- Le libellé est enveloppé : le reflet passe DERRIÈRE le texte, et
+             non par-dessus. -->
+        <button class="btn btn--primary btn--lg btn--block btn--eclat js-open-brochure" type="button">
+          <span class="btn__texte">Recevoir la brochure</span>
+          <svg class="btn__fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M12 5.5 18.5 12 12 18.5"/></svg>
         </button>
 
         <p class="hero__form-trust">
@@ -753,8 +756,9 @@
         tout est dans le dossier, accessible immédiatement, en toute
         confidentialité.
       </p>
-      <button class="btn btn--light btn--lg js-open-brochure" type="button">
-        Recevoir la brochure complète
+      <button class="btn btn--light btn--lg btn--eclat js-open-brochure" type="button">
+        <span class="btn__texte">Recevoir la brochure complète</span>
+        <svg class="btn__fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M12 5.5 18.5 12 12 18.5"/></svg>
       </button>
       <p class="price__note">
         <span>Sans engagement</span><span>·</span><span>Réponse sous 24 h</span><span>·</span><span>100 % confidentiel</span>
@@ -910,7 +914,10 @@
 
 <!-- ============== STICKY CTA ============== -->
 <div class="sticky-cta" id="stickyCta">
-  <button class="btn btn--primary js-open-brochure" type="button">Recevoir la brochure</button>
+  <button class="btn btn--primary btn--eclat js-open-brochure" type="button">
+    <span class="btn__texte">Recevoir la brochure</span>
+    <svg class="btn__fleche" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M12 5.5 18.5 12 12 18.5"/></svg>
+  </button>
 </div>
 
 <!-- ============== LIGHTBOX ============== -->

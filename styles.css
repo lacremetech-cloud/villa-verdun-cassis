@@ -304,6 +304,102 @@ a { color: inherit; }
 .btn--ghost:hover { border-color: var(--accent); color: var(--accent); }
 .btn--light { background: var(--bg); color: var(--dark-2); }
 .btn--light:hover { background: #fff; }
+/* ---------------------------------------------------------------------
+   LE REFLET DES CTA
+
+   POURQUOI. Les boutons étaient justes mais inertes : un aplat, un
+   changement de teinte au survol, rien qui attire l'œil pendant qu'on lit.
+   Sur téléphone, où il n'y a pas de survol, ils ne bougeaient jamais.
+
+   CE QUI EST FAIT. Un reflet étroit traverse le bouton toutes les cinq
+   secondes et demie, en un peu plus d'une seconde — une lueur qui passe sur
+   du verre, pas un clignotant. Le reste du temps, le bouton est immobile :
+   c'est la rareté du geste qui le rend élégant, et non sa fréquence.
+   S'y ajoutent un relief très léger (une ligne claire sur l'arête haute, une
+   ombre portée qui s'approfondit au survol) et une flèche qui avance de 4 px.
+
+   TROIS PRÉCAUTIONS.
+   · Le reflet passe DERRIÈRE le texte, jamais dessus : le libellé est
+     enveloppé dans un <span> placé au-dessus.
+   · L'animation ne tourne QUE lorsque le bouton est à l'écran — le script
+     s'en charge. Un reflet qui balaie en boucle un bouton hors du champ, sur
+     un téléphone, c'est de la batterie dépensée pour personne.
+   · Un visiteur qui demande moins d'animations n'en reçoit aucune.
+   --------------------------------------------------------------------- */
+.btn--eclat {
+  position: relative; overflow: hidden; isolation: isolate;
+  box-shadow: 0 6px 18px rgba(58,81,99,.20), inset 0 1px 0 rgba(255,255,255,.14);
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast),
+              transform var(--t-fast), box-shadow var(--t);
+}
+/* Le texte et la flèche au-dessus du reflet. */
+.btn--eclat > * { position: relative; z-index: 1; }
+.btn--eclat::after {
+  content: ""; position: absolute; z-index: 0;
+  top: -60%; bottom: -60%; left: 0; width: 46%;
+  /* UNE LUEUR, PAS UNE BARRE DE CHROME. À .72 au cœur et sur une bande
+     étroite, le reflet avait des bords nets et un éclat métallique — brillant
+     au mauvais sens du terme. Le cœur est redescendu et les épaulements
+     s'étalent : on voit une lumière passer sur du verre. */
+  background: linear-gradient(100deg,
+    rgba(255,255,255,0) 0%, rgba(255,255,255,.06) 22%, rgba(255,255,255,.22) 38%,
+    rgba(255,255,255,.50) 50%, rgba(255,255,255,.22) 62%, rgba(255,255,255,.06) 78%,
+    rgba(255,255,255,0) 100%);
+  transform: translate3d(-180%, 0, 0) skewX(-18deg);
+  pointer-events: none;
+  /* RÉGULIER, ET NON ACCÉLÉRÉ. Avec une courbe d'accélération, le reflet
+     traversait le bouton en 0,35 s puis rampait hors champ : on voyait un
+     clignement, pas une lumière qui glisse. À vitesse constante, il met près
+     d'une seconde à traverser — c'est là qu'il devient élégant. */
+  animation: btn-eclat 5.6s linear infinite;
+  animation-play-state: paused;   /* le script le lance quand le bouton est vu */
+}
+.btn--eclat.est-en-vue::after { animation-play-state: running; }
+@keyframes btn-eclat {
+  0%, 4% { transform: translate3d(-180%, 0, 0) skewX(-18deg); }
+  30%    { transform: translate3d(420%, 0, 0) skewX(-18deg); }
+  100%   { transform: translate3d(420%, 0, 0) skewX(-18deg); }
+}
+/* Sur fond clair, un reflet blanc ne se verrait pas : c'est le bleu de la
+   charte qui joue le rôle du verre. */
+.btn--light.btn--eclat {
+  box-shadow: 0 6px 18px rgba(20,31,39,.16), inset 0 1px 0 rgba(255,255,255,.60);
+}
+.btn--light.btn--eclat::after {
+  background: linear-gradient(100deg,
+    rgba(92,116,136,0) 0%, rgba(92,116,136,.05) 22%, rgba(92,116,136,.13) 38%,
+    rgba(92,116,136,.28) 50%, rgba(92,116,136,.13) 62%, rgba(92,116,136,.05) 78%,
+    rgba(92,116,136,0) 100%);
+}
+.btn--eclat:hover { transform: translateY(-1px); }
+.btn--primary.btn--eclat:hover {
+  box-shadow: 0 12px 28px rgba(58,81,99,.34), inset 0 1px 0 rgba(255,255,255,.20);
+}
+.btn--light.btn--eclat:hover {
+  box-shadow: 0 12px 28px rgba(20,31,39,.24), inset 0 1px 0 rgba(255,255,255,.70);
+}
+/* Au survol, le reflet revient plus souvent : le bouton répond. */
+.btn--eclat:hover::after { animation-duration: 2.2s; }
+/* L'appui reste un appui, même survolé : cette règle vient APRÈS celle du
+   survol, sans quoi le bouton s'enfoncerait sans bouger. */
+.btn--eclat:active { transform: translateY(1px); }
+
+.btn__fleche { flex: 0 0 auto; transition: transform var(--t-fast); }
+/* LE LIBELLÉ RESTE SUR UNE LIGNE. La flèche prend 25 px de large, et sur un
+   écran de 390 px « Recevoir la brochure » basculait sur deux lignes. On rend
+   ces 25 px en resserrant le rembourrage là où il est le plus large. */
+.btn--eclat .btn__texte { white-space: nowrap; }
+@media (max-width: 480px) {
+  .btn--lg.btn--eclat { padding-left: 20px; padding-right: 20px; }
+}
+.btn--eclat:hover .btn__fleche { transform: translateX(4px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn--eclat::after { animation: none; opacity: 0; }
+  .btn--eclat:hover, .btn--eclat:active { transform: none; }
+  .btn__fleche, .btn--eclat:hover .btn__fleche { transition: none; transform: none; }
+}
+
 .btn--sm { padding: 12px 22px; font-size: 11.5px; }
 .btn--lg { padding: 20px 42px; font-size: 13px; }
 .btn--block { width: 100%; }
