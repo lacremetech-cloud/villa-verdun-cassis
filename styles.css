@@ -176,6 +176,14 @@
   --muted-fg:      #5E7386;
   --soft-fg:       #93A5B2;
   --accent:        #5C7488;
+  /* LA MER DE CASSIS, POUR LE SEUL BOUTON QUI DÉCIDE.
+     `--accent` est le bleu-gris de la charte : juste pour un titre, un repère,
+     une bordure — mais éteint sur le bouton qu'on veut faire cliquer. Ces deux
+     teintes-ci sont plus saturées et plus profondes, celles de l'eau devant le
+     Cap Canaille. Elles ne servent QU'au dégradé des CTA : une touche, pas une
+     nouvelle couleur de marque. */
+  --mer-claire:    #2E7C9B;
+  --mer-profonde:  #1B4F6B;
   --accent-hover:  #47606F;
   --accent-light:  #A9BCCB;
   --accent-deep:   #3A5163;
@@ -326,9 +334,18 @@ a { color: inherit; }
      un téléphone, c'est de la batterie dépensée pour personne.
    · Un visiteur qui demande moins d'animations n'en reçoit aucune.
    --------------------------------------------------------------------- */
+.btn--primary.btn--eclat {
+  /* Le dégradé va du clair vers le profond, en diagonale : l'œil lit une
+     matière, pas un aplat. */
+  background: linear-gradient(135deg, var(--mer-claire) 0%, var(--mer-profonde) 100%);
+  border-color: transparent;
+}
+.btn--primary.btn--eclat:hover {
+  background: linear-gradient(135deg, #3690B2 0%, #1F5C7D 100%);
+}
 .btn--eclat {
   position: relative; overflow: hidden; isolation: isolate;
-  box-shadow: 0 6px 18px rgba(58,81,99,.20), inset 0 1px 0 rgba(255,255,255,.14);
+  box-shadow: 0 6px 18px rgba(27,79,107,.26), inset 0 1px 0 rgba(255,255,255,.18);
   transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast),
               transform var(--t-fast), box-shadow var(--t);
 }
@@ -373,7 +390,7 @@ a { color: inherit; }
 }
 .btn--eclat:hover { transform: translateY(-1px); }
 .btn--primary.btn--eclat:hover {
-  box-shadow: 0 12px 28px rgba(58,81,99,.34), inset 0 1px 0 rgba(255,255,255,.20);
+  box-shadow: 0 14px 32px rgba(27,79,107,.42), inset 0 1px 0 rgba(255,255,255,.24);
 }
 .btn--light.btn--eclat:hover {
   box-shadow: 0 12px 28px rgba(20,31,39,.24), inset 0 1px 0 rgba(255,255,255,.70);
@@ -384,7 +401,27 @@ a { color: inherit; }
    survol, sans quoi le bouton s'enfoncerait sans bouger. */
 .btn--eclat:active { transform: translateY(1px); }
 
-.btn__fleche { flex: 0 0 auto; transition: transform var(--t-fast); }
+/* LA FLÈCHE AVANCE TOUTE SEULE.
+   Au survol seulement, elle ne disait rien à qui est sur téléphone — c'est-à-
+   dire à la plupart des visiteurs. Elle fait maintenant deux petits pas vers
+   la droite puis revient, au même rythme que le reflet : le bouton respire au
+   lieu d'attendre. Le survol, lui, la pousse plus loin et fige l'aller-retour,
+   pour que le geste réponde. */
+.btn__fleche {
+  flex: 0 0 auto;
+  transition: transform var(--t-fast);
+  animation: btn-fleche 5.6s ease-in-out infinite;
+  animation-play-state: paused;
+}
+.btn--eclat.est-en-vue .btn__fleche { animation-play-state: running; }
+@keyframes btn-fleche {
+  0%, 6%   { transform: translateX(0); }
+  11%      { transform: translateX(5px); }
+  16%      { transform: translateX(0); }
+  21%      { transform: translateX(5px); }
+  28%, 100% { transform: translateX(0); }
+}
+
 /* LE LIBELLÉ RESTE SUR UNE LIGNE. La flèche prend 25 px de large, et sur un
    écran de 390 px « Recevoir la brochure » basculait sur deux lignes. On rend
    ces 25 px en resserrant le rembourrage là où il est le plus large. */
@@ -392,12 +429,14 @@ a { color: inherit; }
 @media (max-width: 480px) {
   .btn--lg.btn--eclat { padding-left: 20px; padding-right: 20px; }
 }
-.btn--eclat:hover .btn__fleche { transform: translateX(4px); }
+.btn--eclat:hover .btn__fleche { animation: none; transform: translateX(6px); }
 
 @media (prefers-reduced-motion: reduce) {
   .btn--eclat::after { animation: none; opacity: 0; }
   .btn--eclat:hover, .btn--eclat:active { transform: none; }
-  .btn__fleche, .btn--eclat:hover .btn__fleche { transition: none; transform: none; }
+  .btn__fleche, .btn--eclat:hover .btn__fleche {
+    transition: none; transform: none; animation: none;
+  }
 }
 
 .btn--sm { padding: 12px 22px; font-size: 11.5px; }
@@ -659,7 +698,9 @@ a { color: inherit; }
 .hero__shot-ouvrir:focus-visible { outline: 2px solid var(--accent-light); outline-offset: 3px; }
 .hero__shot-ouvrir__rond {
   flex: 0 0 auto;
-  width: 46px; height: 46px; border-radius: 50%;
+  /* 46 px sur une vignette de 350 : le triangle mangeait l'image. 38 px
+     suffisent à se voir sans écraser la photo. */
+  width: 38px; height: 38px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
   background: rgba(255,255,255,.17); backdrop-filter: blur(8px);
   border: 1px solid rgba(255,255,255,.34); color: #fff;
@@ -671,11 +712,11 @@ a { color: inherit; }
 }
 .hero__shot-ouvrir__texte {
   display: flex; flex-direction: column; line-height: 1.25;
-  font-size: 14.5px; font-weight: 600; letter-spacing: .01em;
+  font-size: 13.5px; font-weight: 600; letter-spacing: .01em;
   text-shadow: 0 1px 10px rgba(20,31,39,.55);
 }
 .hero__shot-ouvrir__fin {
-  font-size: 11px; font-weight: 500; letter-spacing: .13em;
+  font-size: 10px; font-weight: 500; letter-spacing: .12em;
   text-transform: uppercase; opacity: .82; margin-top: 3px;
 }
 /* Le bouton du son reste au-dessus de la surface cliquable : on peut mettre le
@@ -690,7 +731,8 @@ a { color: inherit; }
   align-items: center; justify-content: center; flex-direction: column; gap: 14px;
   text-align: center;
 }
-.hero__shot.is-arretee .hero__shot-ouvrir__rond { width: 64px; height: 64px; }
+/* Lecture refusée : là, le rond DOIT se voir — c'est la seule chose à faire. */
+.hero__shot.is-arretee .hero__shot-ouvrir__rond { width: 56px; height: 56px; }
 .hero__shot.is-arretee .hero__shot-ouvrir__texte { align-items: center; }
 
 /* --- Pilule « Voir la visite », sur grand écran --------------------------- */

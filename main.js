@@ -403,10 +403,41 @@
       } catch (err) { /* idem */ }
     }
 
+    /*
+     * LA HAUTE DÉFINITION, AU PLEIN ÉCRAN SEULEMENT.
+     *
+     * La vignette fait 350 px de large : une source 720p y est déjà au-delà
+     * du nécessaire, et elle démarre toute seule — lui imposer la 1080p
+     * ferait payer à chaque visiteur un débit qu'il ne verra pas.
+     *
+     * Le plein écran, lui, est un geste délibéré. Sur un téléphone en
+     * paysage, l'image occupe plus de 2500 pixels de large : c'est là que la
+     * définition se voit, et c'est là qu'on la sert.
+     *
+     * On ne redescend PAS en 720p en sortant : la haute définition est déjà
+     * téléchargée, et recharger coûterait une seconde d'attente pour rien.
+     */
+    function passerEnHauteDefinition() {
+      var hd = visite.getAttribute("data-hd");
+      if (!hd || visite.dataset.enHd === "1") return;
+      visite.dataset.enHd = "1";
+      var instant = visite.currentTime;
+      var jouait = !visite.paused;
+      visite.src = hd;                 /* `src` prime sur les <source> */
+      visite.load();
+      var reprendre = function () {
+        visite.removeEventListener("loadedmetadata", reprendre);
+        try { visite.currentTime = instant; } catch (e) { /* source trop courte */ }
+        if (jouait) { var p = visite.play(); if (p && p.catch) p.catch(function () {}); }
+      };
+      visite.addEventListener("loadedmetadata", reprendre);
+    }
+
     function ouvrirVisite(ev) {
       /* Les portes sont des liens vers le fichier, pour que la visite reste
          accessible sans JavaScript. Ici, on fait mieux que le lecteur brut. */
       if (ev && ev.preventDefault) ev.preventDefault();
+      passerEnHauteDefinition();
       visite.muted = false;
       majBoutonSon();
 
