@@ -82,7 +82,13 @@ l'auteur, soit des images propres au bien.
 ## Contact WhatsApp
 
 `https://wa.me/33668680407`, présent en pastille verte au pied de chaque page
-intérieure de la brochure, en bouton sur sa dernière page, et au pied du site.
+intérieure de la brochure et en bouton sur sa dernière page.
+
+**Retiré du pied de la landing page le 23 octobre.** Les visiteurs écrivaient
+directement au lieu de laisser leurs coordonnées : le numéro captait les
+demandes que le formulaire devait recueillir. Il reste sur la brochure et le
+dossier, qu'on n'atteint qu'APRÈS avoir rempli le formulaire — là, la personne
+est déjà connue, et pouvoir poser une question est utile.
 
 ## Formulaire de capture
 
