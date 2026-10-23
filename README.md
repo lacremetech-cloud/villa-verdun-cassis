@@ -84,11 +84,18 @@ l'auteur, soit des images propres au bien.
 `https://wa.me/33668680407`, présent en pastille verte au pied de chaque page
 intérieure de la brochure et en bouton sur sa dernière page.
 
-**Retiré du pied de la landing page le 23 octobre.** Les visiteurs écrivaient
-directement au lieu de laisser leurs coordonnées : le numéro captait les
-demandes que le formulaire devait recueillir. Il reste sur la brochure et le
-dossier, qu'on n'atteint qu'APRÈS avoir rempli le formulaire — là, la personne
-est déjà connue, et pouvoir poser une question est utile.
+**Retiré de TOUTE la landing page le 23 octobre** — pied de page, mais aussi
+les deux replis de la modale brochure dans `main.js` : le mot affiché quand le
+formulaire est lent, et le bloc affiché quand le service est injoignable. Le
+premier sortait sur un formulaire qui marchait très bien, simplement ralenti
+par le réseau : il offrait une sortie au visiteur au lieu de le faire patienter.
+
+Les visiteurs écrivaient directement au lieu de laisser leurs coordonnées : le
+numéro captait les demandes que le formulaire devait recueillir.
+
+Il reste sur la brochure et le dossier, qu'on n'atteint qu'APRÈS avoir rempli
+le formulaire — là, la personne est déjà connue, et pouvoir poser une question
+l'aide à avancer.
 
 ## Formulaire de capture
 

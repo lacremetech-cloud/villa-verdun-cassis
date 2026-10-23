@@ -722,7 +722,7 @@
        echoue tout de suite quand le service est coupe. */
     sonderLeService(function (joignable) {
       if (pret || repli || !formContainer || !cadre) return;
-      if (!joignable) { remplacerParWhatsapp(); return; }
+      if (!joignable) { annoncerFormulaireIndisponible(); return; }
       /* Le service repond : la page descend, voila tout. On garde l'esquisse,
          qui dit honnetement « ca charge », et on ajoute la sortie de secours
          sans rien effacer. */
@@ -730,20 +730,20 @@
     });
   }
 
-  /* La sortie de secours discrete : elle s'ajoute, elle ne remplace rien, et
-     elle disparait d'elle-meme des que le formulaire se signale. */
+  /* Le mot d'attente : il s'ajoute, il ne remplace rien, et il disparait de
+     lui-meme des que le formulaire se signale.
+
+     Il portait « Un souci avec le formulaire ? Ecrivez-nous sur WhatsApp ».
+     Retire le 23 octobre : cette ligne sort quand le formulaire est LENT, pas
+     quand il est casse. Sur un reseau bride elle proposait donc une sortie a
+     un visiteur dont le formulaire marchait tres bien — et le visiteur la
+     prenait, sans jamais laisser ses coordonnees. C'est precisement la fuite
+     d'opt-in qu'on supprime. On rassure, on ne detourne plus. */
   function poserLaLigne() {
     if (pret || repli || !formContainer) return;
     var ligne = document.createElement('p');
     ligne.style.cssText = 'font-size:13px;line-height:1.6;color:#8095A6;margin:14px 0 0;text-align:center';
-    ligne.appendChild(document.createTextNode('Un souci avec le formulaire ? '));
-    var lien = document.createElement('a');
-    lien.href = 'https://wa.me/33668680407';
-    lien.target = '_blank'; lien.rel = 'noopener noreferrer';
-    lien.style.cssText = 'color:inherit;text-decoration:underline';
-    lien.textContent = 'Écrivez-nous sur WhatsApp';
-    ligne.appendChild(lien);
-    ligne.appendChild(document.createTextNode('.'));
+    ligne.textContent = "Le formulaire met un instant a s'afficher. Merci de patienter.";
     formContainer.appendChild(ligne);
     repli = [ligne];
   }
@@ -786,10 +786,22 @@
     minuteurMort = null;
     if (pret || !cadre) return;
     deplier();
-    remplacerParWhatsapp();
+    annoncerFormulaireIndisponible();
   }
 
-  function remplacerParWhatsapp() {
+  /* Le service est injoignable. On le DIT, au lieu de proposer un numero.
+
+     Ce bloc offrait « Ecrire sur WhatsApp » : c'etait la derniere porte du
+     site vers un contact direct. Elle part avec les autres le 23 octobre. Le
+     compromis est assume : pendant une panne du formulaire, un visiteur
+     repartira sans avoir laisse ses coordonnees. Mais pendant une panne il
+     n'y a de toute facon pas d'opt-in — et le reste du temps, cette porte
+     captait des demandes que le formulaire devait recueillir.
+
+     Nom change avec le contenu : une fonction qui s'appellerait encore
+     `remplacerParWhatsapp` sans parler de WhatsApp est un mensonge qui
+     survivrait a celui qui l'a ecrit. */
+  function annoncerFormulaireIndisponible() {
     if (pret || repli || !formContainer || !cadre) return;
     retirerAttente();
     /* Hors du flux, mais toujours mesure : voir `.is-replie` dans styles.css. */
@@ -797,16 +809,10 @@
     affiche = false;
     var p = document.createElement('p');
     p.style.cssText = 'font-size:14.5px;line-height:1.7;color:#5E7386;margin:0 0 16px';
-    p.textContent = "Le formulaire ne s'affiche pas ? Écrivez-nous directement, " +
-                    'nous vous transmettons le dossier directement.';
-    var a = document.createElement('a');
-    a.className = 'btn btn--primary btn--block';
-    a.href = 'https://wa.me/33668680407';
-    a.target = '_blank'; a.rel = 'noopener noreferrer';
-    a.textContent = 'Écrire sur WhatsApp';
+    p.textContent = "Le formulaire est momentanement indisponible. " +
+                    'Reessayez dans quelques instants.';
     formContainer.appendChild(p);
-    formContainer.appendChild(a);
-    repli = [p, a];
+    repli = [p];
   }
   /* Affiche le cadre sans attendre sa hauteur. Il garde sa hauteur minimale
      (520 px) ; la modale defile si le formulaire est plus grand. */
