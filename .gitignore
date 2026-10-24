@@ -1,0 +1,13 @@
+# Données personnelles : JAMAIS dans le dépôt.
+#
+# `exports/` contient les extractions du CRM acquéreurs — noms, e-mails,
+# téléphones de prospects réels, et les comptes rendus d'appel, qui portent
+# parfois des informations de santé sur des personnes identifiées.
+#
+# Ce dépôt sert aussi à déployer le site public, et l'historique Git est
+# définitif : un fichier poussé reste récupérable même après suppression.
+# Une base de prospects n'a donc rien à y faire, même en dépôt privé.
+#
+# Ces fichiers sont produits à la demande et restent en local, ou vivent
+# dans le CRM, qui est le bon endroit pour eux.
+exports/
